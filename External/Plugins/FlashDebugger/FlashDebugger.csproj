@@ -99,6 +99,7 @@
   <ItemGroup>
     <Compile Include="Controls\DataTree\ContinuedDataNode.cs" />
     <Compile Include="Controls\DataTree\DataNode.cs" />
+    <Compile Include="Controls\DataTree\ErrorNode.cs" />
     <Compile Include="Controls\DataTree\ScalarNode.cs" />
     <Compile Include="Controls\DataTree\ValueNode.cs" />
     <Compile Include="Controls\DataTree\VariableNode.cs" />
@@ -164,9 +165,6 @@
     <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Controls\BreakPointUI.resx">
-      <DependentUpon>BreakPointUI.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
