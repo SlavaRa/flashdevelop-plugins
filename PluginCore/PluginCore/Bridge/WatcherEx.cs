@@ -46,7 +46,7 @@ namespace PluginCore.Bridge
 
         #region Tracing
 
-        bool errorDone = false;
+        static bool errorDone = false;
         public void TraceError()
         {
             if (errorDone) return;
@@ -54,7 +54,7 @@ namespace PluginCore.Bridge
             TraceManager.AddAsync("Unable to connect to FlashDevelop Bridge.");
         }
 
-        bool okDone = false;
+        static bool okDone = false;
         public void TraceOk()
         {
             if (okDone) return;
@@ -90,10 +90,10 @@ namespace PluginCore.Bridge
                     else
                     {
                         if (Directory.Exists(path) && !path.EndsWith("\\")) path += "\\";
-						bridge.DataReceived += new DataReceivedEventHandler(bridge_DataReceived);
+                        bridge.DataReceived += new DataReceivedEventHandler(bridge_DataReceived);
                         if (filter == null) bridge.Send("watch:" + path);
                         else bridge.Send("watch:" + Path.Combine(path, filter));
-						TraceOk();
+                        TraceOk();
                     }
                 }
                 else if (bridge != null)

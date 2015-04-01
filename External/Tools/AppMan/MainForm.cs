@@ -46,6 +46,11 @@ namespace AppMan
         public static Int32 LINK_MARGIN = 4;
 
         /**
+        * Static constant for exposed config groups (separated with ,)
+        */
+        public static String EXPOSED_GROUPS = "FD5";
+
+        /**
         * Static type and state constants
         */ 
         public static String TYPE_LINK = "Link";
@@ -106,11 +111,14 @@ namespace AppMan
         {
             if (this.GetScale() > 1)
             {
-                this.descHeader.Width = this.ScaleValue(265);
+                this.descHeader.Width = this.ScaleValue(319);
                 this.nameHeader.Width = this.ScaleValue(160);
-                this.versionHeader.Width = this.ScaleValue(100);
+                this.versionHeader.Width = this.ScaleValue(90);
                 this.statusHeader.Width = this.ScaleValue(70);
                 this.typeHeader.Width = this.ScaleValue(75);
+                this.infoHeader.Width = this.ScaleValue(30);
+                Int32 width = Convert.ToInt32(this.Width * 1.06);
+                this.Size = new Size(width, this.Height);
             }
         }
 
@@ -615,6 +623,46 @@ namespace AppMan
             this.UpdateButtonLabels();
         }
 
+        /// <summary>
+        /// Handles the clicking of the info item.
+        /// </summary>
+        private void ListViewClick(Object sender, EventArgs e)
+        {
+            ListViewHitTestInfo hitTest = listView.HitTest(listView.PointToClient(Control.MousePosition));
+            int columnIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+            if (columnIndex == 2)
+            {
+                DepEntry entry = hitTest.Item.Tag as DepEntry;
+                this.RunExecutableProcess(entry.Info);
+            }
+        }
+
+        /// <summary>
+        /// Handles the drawing of the info image.
+        /// </summary>
+        private Image InfoImage = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("AppMan.Resources.Information.png"));
+        private void ListViewDrawSubItem(Object sender, DrawListViewSubItemEventArgs e)
+        {
+            if (e.Header != this.infoHeader)
+            {
+                e.DrawDefault = true;
+                return;
+            }
+            if (!e.Item.Selected) e.DrawBackground();
+            else e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
+            Int32 posOffsetX = (e.Bounds.Width - e.Bounds.Height) / 2;
+            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            e.Graphics.DrawImage(InfoImage, new Rectangle(e.Bounds.X + posOffsetX, e.Bounds.Y + 1, e.Bounds.Height - 2, e.Bounds.Height - 2));
+        }
+        private void ListViewDrawItem(Object sender, DrawListViewItemEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+        private void ListViewDrawColumnHeader(Object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
         #endregion
 
         #region Utility Methods
@@ -680,6 +728,7 @@ namespace AppMan
                     ListViewItem item = new ListViewItem(entry.Name);
                     item.Tag = entry; /* Store for later */
                     item.SubItems.Add(entry.Version);
+                    item.SubItems.Add(localeData.ShowInfoLabel);
                     item.SubItems.Add(entry.Desc);
                     item.SubItems.Add(this.GetLocaleState(STATE_NEW));
                     item.SubItems.Add(this.GetLocaleType(entry.Type));
@@ -911,7 +960,7 @@ namespace AppMan
                 else
                 {
                     this.entriesFile = PathHelper.CONFIG_ADR;
-                    Object data = ObjectSerializer.Deserialize(this.entriesFile, this.depEntries, true);
+                    Object data = ObjectSerializer.Deserialize(this.entriesFile, this.depEntries, MainForm.EXPOSED_GROUPS);
                     this.statusLabel.Text = this.localeData.ItemListOpened;
                     this.depEntries = data as DepEntries;
                     this.PopulateListView();
@@ -939,7 +988,7 @@ namespace AppMan
                 if (e.Error == null && fileExists && fileIsValid)
                 {
                     this.statusLabel.Text = this.localeData.DownloadedItemList;
-                    Object data = ObjectSerializer.Deserialize(this.entriesFile, this.depEntries, true);
+                    Object data = ObjectSerializer.Deserialize(this.entriesFile, this.depEntries, MainForm.EXPOSED_GROUPS);
                     this.depEntries = data as DepEntries;
                     this.PopulateListView();
                 }
@@ -1300,12 +1349,12 @@ namespace AppMan
                 foreach (ListViewItem item in this.listView.Items)
                 {
                     DepEntry dep = item.Tag as DepEntry;
-                    item.SubItems[3].ForeColor = SystemColors.ControlText;
-                    item.SubItems[3].Text = this.GetLocaleState(STATE_NEW);
+                    item.UseItemStyleForSubItems = false;
+                    item.SubItems[4].ForeColor = SystemColors.ControlText;
+                    item.SubItems[4].Text = this.GetLocaleState(STATE_NEW);
                     this.entryStates[dep.Id] = STATE_NEW;
                     foreach (DepEntry inst in this.instEntries)
                     {
-                        item.UseItemStyleForSubItems = false;
                         if (dep.Id == inst.Id)
                         {
                             Color color = Color.Green;
@@ -1319,8 +1368,8 @@ namespace AppMan
                                 color = Color.Orange;
                             }
                             this.entryStates[inst.Id] = state;
-                            item.SubItems[3].ForeColor = color;
-                            item.SubItems[3].Text = text;
+                            item.SubItems[4].ForeColor = color;
+                            item.SubItems[4].Text = text;
                             // If we get an exact match, we don't need to compare more...
                             if (dep.Version == inst.Version && dep.Build == inst.Build)
                             {
