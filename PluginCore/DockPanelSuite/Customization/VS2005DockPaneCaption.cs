@@ -41,9 +41,9 @@ namespace WeifenLuo.WinFormsUI.Docking
 
             protected override void OnRefreshChanges()
             {
-                if (DockPaneCaption.TextColor != ForeColor)
+                if (DockPaneCaption.ImageColor != ForeColor)
                 {
-                    ForeColor = DockPaneCaption.TextColor;
+                    ForeColor = DockPaneCaption.ImageColor;
                     Invalidate();
                 }
             }
@@ -348,11 +348,28 @@ namespace WeifenLuo.WinFormsUI.Docking
 
         private Color TextColor
         {
-            get 
+            get
             {
-                Color color = PluginCore.PluginBase.MainForm.GetThemeColor("VS2005DockPaneCaption.ForeColor");
+                Color color = Color.Empty;
+                if (DockPane.IsActivated) color = PluginCore.PluginBase.MainForm.GetThemeColor("VS2005DockPaneCaption.ActiveForeColor");
+                if (!DockPane.IsActivated || color == Color.Empty)
+                {
+                    color = PluginCore.PluginBase.MainForm.GetThemeColor("VS2005DockPaneCaption.ForeColor");
+                }
                 if (color != Color.Empty) return color;
-                else return DockPane.IsActivated ? ActiveTextColor : InactiveTextColor; 
+                else return DockPane.IsActivated ? ActiveTextColor : InactiveTextColor;
+            }
+        }
+
+        private Color ImageColor
+        {
+            get
+            {
+                Color color = Color.Empty;
+                if (DockPane.IsActivated) color = PluginCore.PluginBase.MainForm.GetThemeColor("VS2005DockPaneCaption.ActiveImageColor");
+                else color = PluginCore.PluginBase.MainForm.GetThemeColor("VS2005DockPaneCaption.ImageColor");
+                if (color != Color.Empty) return color;
+                else return TextColor;
             }
         }
 

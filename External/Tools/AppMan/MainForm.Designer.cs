@@ -92,6 +92,7 @@ namespace AppMan
             this.listView.DrawSubItem += new System.Windows.Forms.DrawListViewSubItemEventHandler(this.ListViewDrawSubItem);
             this.listView.DrawColumnHeader += new System.Windows.Forms.DrawListViewColumnHeaderEventHandler(this.ListViewDrawColumnHeader);
             this.listView.DrawItem += new System.Windows.Forms.DrawListViewItemEventHandler(this.ListViewDrawItem);
+            this.listView.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ListViewMouseMove);
             this.listView.Click += new System.EventHandler(this.ListViewClick);
             this.listView.OwnerDraw = true;
             // 
@@ -320,7 +321,6 @@ namespace AppMan
             this.Load += new EventHandler(this.MainFormLoad);
             this.HelpRequested += new HelpEventHandler(this.MainFormHelpRequested);
             this.HelpButtonClicked += new CancelEventHandler(this.MainFormHelpButtonClicked);
-            this.FormClosed += new FormClosedEventHandler(this.MainFormClosed);
             this.statusStrip.ResumeLayout(false);
             this.statusStrip.PerformLayout();
             this.ResumeLayout(false);

@@ -36,7 +36,6 @@ namespace AppMan
         private LocaleData localeData;
         private Boolean localeOverride;
         private String[] notifyPaths;
-        private Boolean shouldNotify;
         private Boolean haveUpdates;
         private Boolean checkOnly;
 
@@ -65,7 +64,6 @@ namespace AppMan
             this.CheckArgs(args);
             this.isLoading = false;
             this.haveUpdates = false;
-            this.shouldNotify = false;
             this.InitializeSettings();
             this.InitializeLocalization();
             this.InitializeComponent();
@@ -76,6 +74,33 @@ namespace AppMan
             this.Font = SystemFonts.MenuFont;
             if (!Win32.IsRunningOnMono) Application.AddMessageFilter(this);
         }
+
+        #region Instancing
+
+        /// <summary>
+        /// Handle the instance message
+        /// </summary>
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == Win32.WM_SHOWME) this.RestoreWindow();
+            base.WndProc(ref m);
+        }
+
+        /// <summary>
+        /// Restore the window of the first instance
+        /// </summary>
+        private void RestoreWindow()
+        {
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                this.WindowState = FormWindowState.Normal;
+            }
+            Boolean top = this.TopMost;
+            this.TopMost = true;
+            this.TopMost = top;
+        }
+
+        #endregion
 
         #region Initialization
 
@@ -324,11 +349,11 @@ namespace AppMan
         /// <summary>
         /// Save notification files to the notify paths.
         /// </summary>
-        private void MainFormClosed(Object sender, FormClosedEventArgs e)
+        private void NotifyPaths()
         {
             try
             {
-                if (!this.shouldNotify || this.notifyPaths == null) return;
+                if (this.notifyPaths == null) return;
                 foreach (String nPath in this.notifyPaths)
                 {
                     try
@@ -415,7 +440,6 @@ namespace AppMan
         {
             try
             {
-                this.shouldNotify = true;
                 String title = this.localeData.ConfirmTitle;
                 String message = this.localeData.DeleteSelectedConfirm;
                 if (MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
@@ -442,6 +466,7 @@ namespace AppMan
                             this.TryDeleteEntryDir(entry);
                         }
                     }
+                    this.NotifyPaths();
                 }
             }
             catch (Exception ex)
@@ -628,12 +653,28 @@ namespace AppMan
         /// </summary>
         private void ListViewClick(Object sender, EventArgs e)
         {
-            ListViewHitTestInfo hitTest = listView.HitTest(listView.PointToClient(Control.MousePosition));
-            int columnIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+            Point point = this.listView.PointToClient(Control.MousePosition);
+            ListViewHitTestInfo hitTest = this.listView.HitTest(point);
+            Int32 columnIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
             if (columnIndex == 2)
             {
                 DepEntry entry = hitTest.Item.Tag as DepEntry;
                 this.RunExecutableProcess(entry.Info);
+            }
+        }
+
+        /// <summary>
+        /// Change cursor when hovering info sub item.
+        /// </summary>
+        private void ListViewMouseMove(Object sender, MouseEventArgs e)
+        {
+            Point point = this.listView.PointToClient(Control.MousePosition);
+            ListViewHitTestInfo hitTest = this.listView.HitTest(point);
+            if (hitTest.Item != null)
+            {
+                Int32 columnIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+                if (columnIndex == 2) this.Cursor = Cursors.Hand;
+                else this.Cursor = Cursors.Default;
             }
         }
 
@@ -643,20 +684,29 @@ namespace AppMan
         private Image InfoImage = Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream("AppMan.Resources.Information.png"));
         private void ListViewDrawSubItem(Object sender, DrawListViewSubItemEventArgs e)
         {
-            if (e.Header != this.infoHeader)
+            if (e.Header == this.infoHeader)
             {
-                e.DrawDefault = true;
-                return;
+                if (!e.Item.Selected && (e.ItemState & ListViewItemStates.Selected) == 0)
+                {
+                    e.DrawBackground();
+                }
+                else if (e.Item.Selected)
+                {
+                    e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
+                }
+                Int32 posOffsetX = (e.Bounds.Width - e.Bounds.Height) / 2;
+                e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                e.Graphics.DrawImage(InfoImage, new Rectangle(e.Bounds.X + posOffsetX, e.Bounds.Y + 1, e.Bounds.Height - 2, e.Bounds.Height - 2));
             }
-            if (!e.Item.Selected) e.DrawBackground();
-            else e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
-            Int32 posOffsetX = (e.Bounds.Width - e.Bounds.Height) / 2;
-            e.Graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            e.Graphics.DrawImage(InfoImage, new Rectangle(e.Bounds.X + posOffsetX, e.Bounds.Y + 1, e.Bounds.Height - 2, e.Bounds.Height - 2));
+            else e.DrawDefault = true;
         }
         private void ListViewDrawItem(Object sender, DrawListViewItemEventArgs e)
         {
-            e.DrawDefault = true;
+            if ((e.State & ListViewItemStates.Selected) != 0)
+            {
+                e.Graphics.FillRectangle(SystemBrushes.Highlight, e.Bounds);
+            }
+            else e.DrawDefault = true; 
         }
         private void ListViewDrawColumnHeader(Object sender, DrawListViewColumnHeaderEventArgs e)
         {
@@ -728,7 +778,7 @@ namespace AppMan
                     ListViewItem item = new ListViewItem(entry.Name);
                     item.Tag = entry; /* Store for later */
                     item.SubItems.Add(entry.Version);
-                    item.SubItems.Add(localeData.ShowInfoLabel);
+                    item.SubItems.Add(entry.Info);
                     item.SubItems.Add(entry.Desc);
                     item.SubItems.Add(this.GetLocaleState(STATE_NEW));
                     item.SubItems.Add(this.GetLocaleType(entry.Type));
@@ -886,9 +936,12 @@ namespace AppMan
                 if (file.ToLower().EndsWith(".fdz"))
                 {
                     String fd = Path.Combine(PathHelper.GetExeDirectory(), @"..\..\FlashDevelop.exe");
+                    Boolean wait = Process.GetProcessesByName("FlashDevelop").Length == 0;
                     if (File.Exists(fd))
                     {
                         Process.Start(Path.GetFullPath(fd), file + " -silent -reuse");
+                        // If FD was not running, give it a little time to start...
+                        if (wait) Thread.Sleep(500);
                         return;
                     }
                 }
@@ -993,6 +1046,7 @@ namespace AppMan
                     this.PopulateListView();
                 }
                 else this.statusLabel.Text = this.localeData.ItemListDownloadFailed;
+                TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                 this.progressBar.Value = 0;
             }
             catch (Exception ex)
@@ -1053,6 +1107,7 @@ namespace AppMan
                         this.isLoading = false;
                         this.progressBar.Value = 0;
                         this.cancelButton.Enabled = false;
+                        TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                         this.statusLabel.Text = this.localeData.AllItemsCompleted;
                         this.NoneLinkLabelLinkClicked(null, null);
                         this.UpdateButtonLabels();
@@ -1086,6 +1141,7 @@ namespace AppMan
         private void DownloadProgressChanged(Object sender, DownloadProgressChangedEventArgs e)
         {
             this.progressBar.Value = e.ProgressPercentage;
+            TaskbarProgress.SetValue(this.Handle, e.ProgressPercentage, 100);
         }
 
         /// <summary>
@@ -1100,6 +1156,7 @@ namespace AppMan
                     this.isLoading = false;
                     this.cancelButton.Enabled = false;
                     this.statusLabel.Text = this.localeData.ItemListDownloadCancelled;
+                    TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                     this.TryDeleteOldTempFiles();
                     this.progressBar.Value = 0;
                     this.UpdateButtonLabels();
@@ -1118,6 +1175,7 @@ namespace AppMan
                             this.isLoading = false;
                             this.progressBar.Value = 0;
                             this.cancelButton.Enabled = false;
+                            TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                             this.statusLabel.Text = this.localeData.AllItemsCompleted;
                             this.NoneLinkLabelLinkClicked(null, null);
                             this.TryDeleteEntryDir(this.curEntry);
@@ -1143,6 +1201,7 @@ namespace AppMan
                         this.isLoading = false;
                         this.progressBar.Value = 0;
                         this.cancelButton.Enabled = false;
+                        TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                         this.statusLabel.Text = this.localeData.AllItemsCompleted;
                         this.NoneLinkLabelLinkClicked(null, null);
                         this.TryDeleteEntryDir(this.curEntry);
@@ -1169,6 +1228,7 @@ namespace AppMan
                 this.bgWorker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(this.WorkerDoCompleted);
                 this.bgWorker.RunWorkerAsync(new BgArg(file, path));
                 this.statusLabel.Text = this.localeData.ExtractingFile + this.curFile;
+                TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.Indeterminate);
                 this.progressBar.Style = ProgressBarStyle.Marquee;
             }
             catch
@@ -1182,6 +1242,7 @@ namespace AppMan
                     this.isLoading = false;
                     this.progressBar.Value = 0;
                     this.cancelButton.Enabled = false;
+                    TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                     this.statusLabel.Text = this.localeData.AllItemsCompleted;
                     this.NoneLinkLabelLinkClicked(null, null);
                     this.TryDeleteEntryDir(this.curEntry);
@@ -1220,6 +1281,7 @@ namespace AppMan
                     this.isLoading = false;
                     this.progressBar.Value = 0;
                     this.cancelButton.Enabled = false;
+                    TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                     this.statusLabel.Text = this.localeData.AllItemsCompleted;
                     this.NoneLinkLabelLinkClicked(null, null);
                     this.TryDeleteEntryDir(this.curEntry);
@@ -1236,7 +1298,9 @@ namespace AppMan
         {
             try
             {
+                
                 this.progressBar.Style = ProgressBarStyle.Continuous;
+                TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.Normal);
                 if (this.fileQueue.Count > 0)
                 {
                     this.curFile = this.fileQueue.Dequeue();
@@ -1273,8 +1337,8 @@ namespace AppMan
                         #endif
                         Thread.Sleep(100); // Wait for files...
                         this.LoadInstalledEntries();
-                        this.shouldNotify = true;
                         this.UpdateEntryStates();
+                        this.NotifyPaths();
                     }
                     else this.RunExecutableProcess(this.tempFile);
                     if (this.downloadQueue.Count > 0) this.DownloadNextFromQueue();
@@ -1283,6 +1347,7 @@ namespace AppMan
                         this.isLoading = false;
                         this.progressBar.Value = 0;
                         this.cancelButton.Enabled = false;
+                        TaskbarProgress.SetState(this.Handle, TaskbarProgress.TaskbarStates.NoProgress);
                         this.statusLabel.Text = this.localeData.AllItemsCompleted;
                         this.NoneLinkLabelLinkClicked(null, null);
                         this.UpdateButtonLabels();

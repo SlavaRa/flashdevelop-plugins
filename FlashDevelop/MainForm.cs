@@ -3385,10 +3385,14 @@ namespace FlashDevelop
             {
                 ScintillaControl sci = Globals.SciControl;
                 ToolStripItem button = (ToolStripItem)sender;
-                ScintillaManager.ChangeSyntax(((ItemData)button.Tag).Tag, sci);
+                string language = ((ItemData) button.Tag).Tag;
+                if (sci.ConfigurationLanguage.Equals(language))
+                    return; // already using this syntax
+
+                ScintillaManager.ChangeSyntax(language, sci);
 
                 string extension = sci.GetFileExtension();
-                if (extension != null)
+                if (!string.IsNullOrEmpty(extension))
                 {
                     string title = TextHelper.GetString("Title.RememberExtensionDialog"); 
                     string message = TextHelper.GetString("Info.RememberExtensionDialog"); 
@@ -3891,12 +3895,6 @@ namespace FlashDevelop
         {
             try
             {
-                /*if (this.processRunner.IsRunning)
-                {
-                    String message = TextHelper.GetString("Info.ProcessAlreadyRunning");
-                    TraceManager.Add(message, (Int32)TraceType.Error);
-                    return;
-                }*/
                 ToolStripItem button = (ToolStripItem)sender;
                 String args = this.ProcessArgString(((ItemData)button.Tag).Tag);
                 Int32 position = args.IndexOf(';'); // Position of the arguments
