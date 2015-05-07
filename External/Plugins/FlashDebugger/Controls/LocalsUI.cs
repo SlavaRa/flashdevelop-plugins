@@ -15,6 +15,7 @@ namespace FlashDebugger
 
         public LocalsUI(PluginMain pluginMain)
         {
+            this.AutoKeyHandling = true;
             this.pluginMain = pluginMain;
             this.treeControl = new DataTreeControl();
             this.treeControl.Tree.BorderStyle = BorderStyle.None;
@@ -50,7 +51,11 @@ namespace FlashDebugger
             {
                 foreach (Variable item in variables)
                 {
-                    treeControl.AddNode(new VariableNode(item));
+                    treeControl.AddNode(new VariableNode(item)
+                                            {
+                                                HideClassId = PluginMain.settingObject.HideClassIds,
+                                                HideFullClasspath = PluginMain.settingObject.HideFullClasspaths
+                                            });
                 }
             }
             finally

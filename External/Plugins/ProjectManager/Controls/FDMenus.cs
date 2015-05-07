@@ -121,29 +121,34 @@ namespace ProjectManager.Controls
             ProjectChanged(project);
         }
 
+        public void CloseProject()
+        {
+            TargetBuildSelector.Text = "";
+            EnableTargetBuildSelector(false);
+        }
+
         public void ProjectChanged(Project project)
         {
             TargetBuildSelector.Items.Clear();
-            if (project.MovieOptions.TargetBuildTypes != null)
+            if (project.MovieOptions.DefaultBuildTargets != null && project.MovieOptions.DefaultBuildTargets.Length > 0)
+            {
+                TargetBuildSelector.Items.AddRange(project.MovieOptions.DefaultBuildTargets);
+                TargetBuildSelector.Text = project.MovieOptions.DefaultBuildTargets[0];
+            }
+            else if (project.MovieOptions.TargetBuildTypes != null && project.MovieOptions.TargetBuildTypes.Length > 0)
             {
                 TargetBuildSelector.Items.AddRange(project.MovieOptions.TargetBuildTypes);
                 string target = project.TargetBuild ?? project.MovieOptions.TargetBuildTypes[0];
-                if (target != "" && !TargetBuildSelector.Items.Contains(target)) TargetBuildSelector.Items.Insert(0, target);
+                if (!String.IsNullOrEmpty(target) && !TargetBuildSelector.Items.Contains(target)) TargetBuildSelector.Items.Insert(0, target);
                 TargetBuildSelector.Text = target;
-                EnableTargetBuildSelector(true);
             }
-            else if (project.OutputType == OutputType.CustomBuild)
+            else
             {
                 string target = project.TargetBuild ?? "";
                 if (target != "") TargetBuildSelector.Items.Insert(0, target);
                 TargetBuildSelector.Text = target;
-                EnableTargetBuildSelector(true);
             }
-            else
-            {
-                TargetBuildSelector.Text = "";
-                EnableTargetBuildSelector(false);
-            }
+            EnableTargetBuildSelector(true);
         }
 
         

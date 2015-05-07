@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
-using Aga.Controls.Tree.NodeControls;
 using FlashDebugger.Controls.DataTree;
 using PluginCore;
 using PluginCore.Localization;
@@ -21,6 +16,7 @@ namespace FlashDebugger.Controls
 
         public WatchUI()
         {
+            this.AutoKeyHandling = true;
             watches = new List<string>();
             treeControl = new DataTreeControl(true);
             this.treeControl.Tree.BorderStyle = BorderStyle.None;
@@ -108,9 +104,17 @@ namespace FlashDebugger.Controls
                 var ctx = new ExpressionContext(PluginMain.debugManager.FlashInterface.Session, PluginMain.debugManager.FlashInterface.GetFrames()[PluginMain.debugManager.CurrentFrame]);
                 var obj = exp.evaluate(ctx);
                 if (obj is Variable)
-                    node = new VariableNode((Variable)obj);
+                    node = new VariableNode((Variable)obj)
+                               {
+                                   HideClassId = PluginMain.settingObject.HideClassIds,
+                                   HideFullClasspath = PluginMain.settingObject.HideFullClasspaths
+                               };
                 else if (obj is Value)
-                    node = new ValueNode(item, (Value)obj);
+                    node = new ValueNode(item, (Value) obj)
+                               {
+                                   HideClassId = PluginMain.settingObject.HideClassIds,
+                                   HideFullClasspath = PluginMain.settingObject.HideFullClasspaths
+                               };
                 else
                     node = new ScalarNode(item, obj.toString());
                 node.Tag = item;
