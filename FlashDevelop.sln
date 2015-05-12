@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40302.0
+VisualStudioVersion = 12.0.40418.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashDevelop", "FlashDevelop\FlashDevelop.csproj", "{EFD07485-9A64-4EEC-94E7-ACBD4DA5CA93}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -85,6 +85,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntPanel.Tests", "External\Plugins\AntPanel\AntPanel.Tests\AntPanel.Tests.csproj", "{A39ACB42-C8A5-4EDF-BE65-A11C87F8FC38}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ColtPlugin", "External\Plugins\ColtAS\ColtPlugin\ColtPlugin.csproj", "{78101C02-E186-4954-B1DD-DEBB7905FAD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostfixCodeCompletion", "External\Plugins\PostfixCodeCompletion\PostfixCodeCompletion\PostfixCodeCompletion.csproj", "{E511B03B-81FD-4C39-B587-211F2A1603A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -536,6 +538,16 @@ Global
 		{78101C02-E186-4954-B1DD-DEBB7905FAD8}.Release|Mixed Platforms.Build.0 = Release|x86
 		{78101C02-E186-4954-B1DD-DEBB7905FAD8}.Release|x86.ActiveCfg = Release|x86
 		{78101C02-E186-4954-B1DD-DEBB7905FAD8}.Release|x86.Build.0 = Release|x86
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{E511B03B-81FD-4C39-B587-211F2A1603A1}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
