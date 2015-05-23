@@ -186,7 +186,6 @@ namespace ASCompletion
 
         private void InitializeTexts()
         {
-            this.noneItem.Image = PluginBase.MainForm.FindImage("559");
             this.noneItem.Text = TextHelper.GetString("Outline.SortNone");
             this.sortedItem.Text = TextHelper.GetString("Outline.SortDefault");
             this.sortedByKindItem.Text = TextHelper.GetString("Outline.SortedByKind");
@@ -1117,6 +1116,12 @@ namespace ASCompletion
             }
         }
 
+        // Update colors on start after theme engine
+        public void UpdateAfterTheme()
+        {
+            findProcTxt.ForeColor = System.Drawing.SystemColors.GrayText;
+        }
+
         protected override Boolean ProcessDialogKey(Keys keyData)
         {
             if (keyData == Keys.Enter)
@@ -1174,7 +1179,9 @@ namespace ASCompletion
             }
             return null;
         }
+
         #endregion
+
     }
 
     #region Custom structures

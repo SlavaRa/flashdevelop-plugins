@@ -47,6 +47,7 @@ namespace System.Windows.Forms
 
     public class DockPanelStripRenderer : ToolStripRenderer
     {
+        private ToolStrip toolStrip;
         private Boolean drawBottomBorder;
         private ProfessionalColorTable colorTable;
         static ToolStripRenderer renderer;
@@ -59,14 +60,27 @@ namespace System.Windows.Forms
             this.colorTable = new ProfessionalColorTable();
             UiRenderMode renderMode = PluginBase.MainForm.Settings.RenderMode;
             if (renderMode == UiRenderMode.System) renderer = new ToolStripSystemRenderer();
-            else renderer = new ToolStripProfessionalRenderer();
+            else renderer = new ToolStripProfessionalRenderer(this.colorTable);
+        }
+
+        protected override void Initialize(ToolStrip toolStrip)
+        {
+            this.toolStrip = toolStrip;
+            this.toolStrip.ImageScalingSize = ScaleHelper.Scale(new Size(16, 16));
+            this.toolStrip.Paint += this.OnToolStripPaint;
+            base.Initialize(toolStrip);
         }
 
         protected override void InitializeItem(ToolStripItem item)
         {
+            base.InitializeItem(item);
+            // Set default blank image to look ok in high dpi
+            if (item.Image == null && item.IsOnDropDown)
+            {
+                item.Image = PluginBase.MainForm.FindImage("559");
+            }
             if (item is ToolStripButton)
             {
-                base.InitializeItem(item);
                 Double scale = ScaleHelper.GetScale();
                 if (scale >= 1.5)
                 {
@@ -81,7 +95,39 @@ namespace System.Windows.Forms
                     item.Padding = new Padding(2, 2, 2, 2);
                 }
             }
-            else base.InitializeItem(item);
+        }
+
+        private void OnToolStripPaint(Object sender, PaintEventArgs e)
+        {
+            Font font = PluginBase.MainForm.Settings.DefaultFont;
+            Color tback = PluginBase.MainForm.GetThemeColor("ToolStripTextBoxControl.BackColor");
+            Color tborder = PluginBase.MainForm.GetThemeColor("ToolStripTextBoxControl.BorderColor");
+            Color cborder = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.BorderColor");
+            foreach (ToolStripItem item in this.toolStrip.Items)
+            {
+                if (item is ToolStripTextBox && tborder != Color.Empty && tback != Color.Empty)
+                {
+                    var textBox = item as ToolStripTextBox;
+                    var size = textBox.TextBox.Size;
+                    var location = textBox.TextBox.Location;
+                    textBox.Margin = new Padding(2, 1, 2, 1);
+                    textBox.BorderStyle = BorderStyle.None;
+                    e.Graphics.FillRectangle(new SolidBrush(tback), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
+                    e.Graphics.DrawRectangle(new Pen(tborder), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
+                }
+                else if (item is ToolStripComboBox && cborder != Color.Empty)
+                {
+                    var comboBox = item as ToolStripComboBox;
+                    var size = comboBox.ComboBox.Size;
+                    var location = comboBox.ComboBox.Location;
+                    if (comboBox.FlatStyle != FlatStyle.Flat) comboBox.FlatStyle = FlatStyle.Flat;
+                    if (font.Size > 8.25f && comboBox.Font.Size != font.Size - 0.5f)
+                    {
+                        comboBox.Font = new Font(font.FontFamily, font.Size - 0.5f);
+                    }
+                    e.Graphics.DrawRectangle(new Pen(cborder), location.X - 1, location.Y - 1, size.Width + 1, size.Height + 1);
+                }
+            }
         }
 
         protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
@@ -166,7 +212,7 @@ namespace System.Windows.Forms
                 {
                     Pen pen2 = new Pen(sepFore);
                     Int32 middle = e.Item.ContentRectangle.Top + e.Item.ContentRectangle.Height / 2;
-                    e.Graphics.DrawLine(pen2, 32, middle, e.Item.ContentRectangle.Right - 6, middle);
+                    e.Graphics.DrawLine(pen2, ScaleHelper.Scale(16) + 16, middle, e.Item.ContentRectangle.Right - 6, middle);
                     pen2.Dispose();
                 }
                 else renderer.DrawSeparator(e);
@@ -228,6 +274,7 @@ namespace System.Windows.Forms
         {
             if (renderer is ToolStripProfessionalRenderer)
             {
+                Color text = PluginBase.MainForm.GetThemeColor("ToolStripItem.ForeColor");
                 Color back = PluginBase.MainForm.GetThemeColor("ToolStripItem.BackColor");
                 Color border = PluginBase.MainForm.GetThemeColor("ToolStripItem.BorderColor");
                 if (e.Item.Enabled)
@@ -252,7 +299,7 @@ namespace System.Windows.Forms
                         e.Graphics.FillRectangle(b, rect);
                         DockDrawHelper.DrawRoundedRectangle(e.Graphics, rect.Left - 1, rect.Top - 1, rect.Width, rect.Height + 1, 3, border == Color.Empty ? DockDrawHelper.ColorSelectedBG_Border : border);
                         DockDrawHelper.DrawRoundedRectangle(e.Graphics, rect2.Left - 1, rect2.Top - 1, rect2.Width, rect2.Height + 1, 3, back == Color.Empty ? DockDrawHelper.ColorSelectedBG_White : back);
-                        e.Item.ForeColor = Color.Black;
+                        e.Item.ForeColor = text;
                     }
                     if (((ToolStripMenuItem)e.Item).DropDown.Visible && !e.Item.IsOnDropDown)
                     {
@@ -277,6 +324,7 @@ namespace System.Windows.Forms
                 Boolean isOver = false;
                 Color back = PluginBase.MainForm.GetThemeColor("ToolStripItem.BackColor");
                 Color border = PluginBase.MainForm.GetThemeColor("ToolStripItem.BorderColor");
+                Color active = PluginBase.MainForm.GetThemeColor("ToolStripMenu.DropDownBorderColor");
                 if (e.Item is ToolStripButton)
                 {
                     ToolStripButton button = e.Item as ToolStripButton;
@@ -300,7 +348,7 @@ namespace System.Windows.Forms
                     LinearGradientBrush b = new LinearGradientBrush(rect, back == Color.Empty ? DockDrawHelper.ColorSelectedBG_White : back, back == Color.Empty ? DockDrawHelper.ColorSelectedBG_Blue : back, LinearGradientMode.Vertical);
                     e.Graphics.FillRectangle(b, rect);
                     Rectangle rect2 = new Rectangle(rect.Left - 1, rect.Top - 1, rect.Width + 1, rect.Height + 1);
-                    e.Graphics.DrawRectangle(new Pen(border == Color.Empty ? DockDrawHelper.ColorSelectedBG_Border : border), rect2);
+                    e.Graphics.DrawRectangle(new Pen(active == Color.Empty ? DockDrawHelper.ColorSelectedBG_Border : active), rect2);
                 }
             }
             else renderer.DrawButtonBackground(e);

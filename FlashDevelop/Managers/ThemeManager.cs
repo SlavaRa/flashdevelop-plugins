@@ -9,6 +9,7 @@ using PluginCore.Localization;
 using PluginCore.Managers;
 using System.Collections;
 using PluginCore.Helpers;
+using PluginCore;
 
 namespace FlashDevelop.Managers
 {
@@ -115,6 +116,11 @@ namespace FlashDevelop.Managers
                     }
                 }
                 ThemeControl(obj);
+                if (obj is MainForm)
+                {
+                    NotifyEvent ne = new NotifyEvent(EventType.ApplyTheme);
+                    EventManager.DispatchEvent(Globals.MainForm, ne);
+                }
             }
             catch (Exception ex)
             {
@@ -127,12 +133,25 @@ namespace FlashDevelop.Managers
         /// </summary>
         public static void ThemeControl(Object obj)
         {
+            ThemeControl(obj, obj.GetType());
+        }
+
+        /// <summary>
+        /// Applies theme colors to the control based on type.
+        /// </summary>
+        private static void ThemeControl(Object obj, Type type)
+        {
             try
             {
-                Type type = obj.GetType();
-                String full = type.Name;
-                String name = full.EndsWith("Ex") ? full.Remove(full.Length - 2) : full;
+                // Apply colors of base type before applying for this type
+                Boolean useIn = GetThemeValue("ThemeManager.UseInheritance") == "True";
+                if (useIn && type.BaseType != null) ThemeControl(obj, type.BaseType);
+                // Handle type with full name, with or without suffix 'Ex'
+                String name = type.Name.EndsWith("Ex") ? type.Name.Remove(type.Name.Length - 2) : type.Name;
                 PropertyInfo ground = type.GetProperty("BackgroundColor");
+                PropertyInfo alink = type.GetProperty("ActiveLinkColor");
+                PropertyInfo dlink = type.GetProperty("DisabledLinkColor");
+                PropertyInfo link = type.GetProperty("LinkColor");
                 PropertyInfo back = type.GetProperty("BackColor");
                 PropertyInfo fore = type.GetProperty("ForeColor");
                 if (back != null)
@@ -160,6 +179,33 @@ namespace FlashDevelop.Managers
                     if (color != Color.Empty)
                     {
                         ground.SetValue(obj, color, null);
+                    }
+                }
+                if (alink != null)
+                {
+                    String key = name + ".ActiveLinkColor";
+                    Color color = GetThemeColor(key);
+                    if (color != Color.Empty)
+                    {
+                        alink.SetValue(obj, color, null);
+                    }
+                }
+                if (dlink != null)
+                {
+                    String key = name + ".DisabledLinkColor";
+                    Color color = GetThemeColor(key);
+                    if (color != Color.Empty)
+                    {
+                        dlink.SetValue(obj, color, null);
+                    }
+                }
+                if (link != null)
+                {
+                    String key = name + ".LinkColor";
+                    Color color = GetThemeColor(key);
+                    if (color != Color.Empty)
+                    {
+                        link.SetValue(obj, color, null);
                     }
                 }
             }

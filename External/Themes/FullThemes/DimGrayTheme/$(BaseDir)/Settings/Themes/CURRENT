@@ -1,5 +1,8 @@
 # FD UI THEME (5.0+)
 
+# Use inherited base styles?
+#ThemeManager.UseInheritance=True
+
 # Bright, Default, Dim, Dark, Darker, Black
 ImageManager.ImageSet=Default
 
@@ -15,6 +18,17 @@ VS2005AutoHideStrip.TabUnderlineColor=#ff0000
 
 # Default (Hover), Click
 DockPanel.ShowAutoHideContentOn=Hover
+
+#LinkLabel.LinkColor=#ff0000
+#LinkLabel.ActiveLinkColor=#00ff00
+#LinkLabel.DisabledLinkColor=#0000ff
+
+#ColumnHeader.BackColor=#ECECEC
+#ColumnHeader.TextColor=#333333
+#ColumnHeader.BorderColor=#888888
+
+ToolStripComboBoxControl.BorderColor=#CCCCCC
+#ToolStripTextBoxControl.BorderColor=#CCCCCC
 
 #ToolStrip.BorderColor=#ff0000
 #DockWindow.BorderColor=#ff0000

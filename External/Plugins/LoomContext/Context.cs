@@ -146,10 +146,12 @@ namespace LoomContext
             char S = Path.DirectorySeparatorChar;
             string sdkLibs = compiler + S + "libs";
 
-            if (majorVersion > 0 && !String.IsNullOrEmpty(sdkLibs) && Directory.Exists(sdkLibs))
+            if (!String.IsNullOrEmpty(sdkLibs) && Directory.Exists(sdkLibs))
             {
                 foreach (string loomlib in Directory.GetFiles(sdkLibs, "*.loomlib"))
-                    AddPath(loomlib);
+                {
+                    AddLib(contextSetup, loomlib);
+                }
             }
 
             // add external pathes
@@ -186,6 +188,15 @@ namespace LoomContext
             FinalizeClasspath();
         }
 
+        private void AddLib(ContextSetupInfos contextSetup, string loomlib)
+        {
+            AddPath(loomlib);
+
+            // TODO: it would be nice if Reference node could work with virtual models
+            //if (contextSetup.AdditionalPaths == null) contextSetup.AdditionalPaths = new List<string>();
+            //contextSetup.AdditionalPaths.Add(loomlib); // References
+        }
+
         /// <summary>
         /// Build a list of file mask to explore the classpath
         /// </summary>
@@ -215,6 +226,8 @@ namespace LoomContext
                     lock (path)
                     {
                         path.WasExplored = true;
+                        // do not monitor
+                        path.ReleaseWatcher(); 
                         // PARSE LOOMLIB
                         LibParser.Parse(path, this);
                     }

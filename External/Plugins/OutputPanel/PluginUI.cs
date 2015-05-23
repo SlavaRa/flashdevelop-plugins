@@ -205,7 +205,7 @@ namespace OutputPanel
             this.clearButton.ToolTipText = TextHelper.GetString("Label.ClearSearchText");
             this.clearButton.Image = PluginBase.MainForm.FindImage("153");
             this.textLog.Font = PluginBase.Settings.ConsoleFont;
-            this.findTextBox.Text = this.searchInvitation; 
+            this.findTextBox.Text = this.searchInvitation;
             this.textLog.ContextMenuStrip = menu;
             this.ApplyWrapText();
         }
@@ -262,6 +262,14 @@ namespace OutputPanel
                 Clipboard.SetText(this.textLog.Text);
                 PluginBase.MainForm.RefreshUI();
             }
+        }
+
+        /// <summary>
+        /// Update colors on start after theme engine
+        /// </summary>
+        public void UpdateAfterTheme()
+        {
+            this.findTextBox.ForeColor = System.Drawing.SystemColors.GrayText;
         }
 
         /// <summary>
@@ -390,7 +398,7 @@ namespace OutputPanel
                         newColor = Color.Gray;
                         break;
                     case 1: // Debug
-                        newColor = Color.Black;
+                        newColor = this.ForeColor;
                         break;
                     case 2: // Warning
                         newColor = Color.Orange;
