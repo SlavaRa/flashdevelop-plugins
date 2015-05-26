@@ -118,6 +118,7 @@ namespace FileExplorer
             this.fileView.Name = "fileView";
             this.fileView.Size = new System.Drawing.Size(278, 327);
             this.fileView.TabIndex = 5;
+            this.fileView.FullRowSelect = true;
             this.fileView.UseCompatibleStateImageBehavior = false;
             this.fileView.View = System.Windows.Forms.View.Details;
             this.fileView.ItemActivate += new System.EventHandler(this.FileViewItemActivate);
@@ -320,9 +321,9 @@ namespace FileExplorer
         /// </summary>
         private void InitializeLayout()
         {
+            this.selectedPath.FlatStyle = PluginBase.Settings.ComboBoxFlatStyle;
             this.toolStrip.Renderer = new DockPanelStripRenderer();
             this.toolStrip.ImageScalingSize = ScaleHelper.Scale(new Size(16, 16));
-            this.selectedPath.FlatStyle = PluginBase.Settings.ComboBoxFlatStyle;
             foreach (ColumnHeader column in fileView.Columns)
             {
                 column.Width = ScaleHelper.Scale(column.Width);
