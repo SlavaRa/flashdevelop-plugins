@@ -4,12 +4,13 @@ using System.Drawing.Drawing2D;
 using System.ComponentModel.Design;
 using System.Windows.Forms;
 using System.Reflection;
-using PluginCore;
 using PluginCore.Helpers;
+using PluginCore.Managers;
+using PluginCore;
 
 namespace System.Windows.Forms
 {
-    public class ToolStripSpringComboBox : ToolStripComboBox
+    public class ToolStripSpringComboBox : ToolStripComboBoxEx
     {
         public ToolStripSpringComboBox()
         {
@@ -153,11 +154,30 @@ namespace System.Windows.Forms
 
     }
 
-    public class DataGridViewEx : DataGridView
+    public class DataGridViewEx : DataGridView, IEventHandler
     {
         public DataGridViewEx()
         {
             this.CellPainting += this.OnDataGridViewCellPainting;
+            EventManager.AddEventHandler(this, EventType.ApplyTheme);
+        }
+
+        public void HandleEvent(object sender, NotifyEvent e, HandlingPriority priority)
+        {
+            if (e.Type == EventType.ApplyTheme)
+            {
+                RefreshColors();
+            }
+        }
+
+        private void RefreshColors()
+        {
+            Color fore = PluginBase.MainForm.GetThemeColor("DataGridView.ForeColor");
+            Color back = PluginBase.MainForm.GetThemeColor("DataGridView.BackColor");
+            Color border = PluginBase.MainForm.GetThemeColor("ColumnHeader.BorderColor");
+            DefaultCellStyle.ForeColor = (fore != Color.Empty) ? fore : SystemColors.WindowText;
+            DefaultCellStyle.BackColor = (back != Color.Empty) ? back : SystemColors.Window;
+            GridColor = (border != Color.Empty) ? border :  SystemColors.ControlDark;
         }
 
         private void OnDataGridViewCellPainting(Object sender, DataGridViewCellPaintingEventArgs e)
@@ -185,6 +205,7 @@ namespace System.Windows.Forms
     public class ListViewEx : ListView
     {
         private Timer expandDelay;
+        public Boolean UseTheme = true;
 
         public ListViewEx()
         {
@@ -214,13 +235,13 @@ namespace System.Windows.Forms
             Color back = PluginBase.MainForm.GetThemeColor("ColumnHeader.BackColor");
             Color text = PluginBase.MainForm.GetThemeColor("ColumnHeader.TextColor");
             Color border = PluginBase.MainForm.GetThemeColor("ColumnHeader.BorderColor");
-            if (back != Color.Empty && border != Color.Empty && text != Color.Empty)
+            if (UseTheme && back != Color.Empty && border != Color.Empty && text != Color.Empty)
             {
                 e.Graphics.FillRectangle(new SolidBrush(back), e.Bounds.X, 0, e.Bounds.Width, e.Bounds.Height);
                 e.Graphics.DrawLine(new Pen(border), e.Bounds.X, e.Bounds.Height - 1, e.Bounds.X + e.Bounds.Width, e.Bounds.Height - 1);
                 e.Graphics.DrawLine(new Pen(border), e.Bounds.X + e.Bounds.Width - 1, 3, e.Bounds.X + e.Bounds.Width - 1, e.Bounds.Height - 6);
-                var textRect = new Rectangle(e.Bounds.X + 3, e.Bounds.Y + 4, e.Bounds.Width, e.Bounds.Height);
-                TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, textRect.Location, text);
+                Rectangle textRect = new Rectangle(e.Bounds.X + 3, e.Bounds.Y + (e.Bounds.Height / 2), e.Bounds.Width, e.Bounds.Height);
+                TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, textRect.Location, text, TextFormatFlags.VerticalCenter);
             }
             else e.DrawDefault = true;
         }
@@ -244,6 +265,166 @@ namespace System.Windows.Forms
                     break;
             }
             base.WndProc(ref message);
+        }
+
+    }
+    public class ToolStripComboBoxEx : ToolStripControlHost
+    {
+        public ToolStripComboBoxEx() : base(new FlatCombo())
+        {
+            Font font = PluginBase.Settings.DefaultFont;
+            this.FlatCombo.Font = font;
+        }
+
+        public ComboBoxStyle DropDownStyle
+        {
+            set { this.FlatCombo.DropDownStyle = value; }
+            get { return this.FlatCombo.DropDownStyle; }
+        }
+
+        public FlatStyle FlatStyle
+        {
+            set { this.FlatCombo.FlatStyle = value; }
+            get { return this.FlatCombo.FlatStyle; }
+        }
+
+        public Int32 SelectedIndex
+        {
+            set { this.FlatCombo.SelectedIndex = value; }
+            get { return this.FlatCombo.SelectedIndex; }
+        }
+
+        public Object SelectedItem
+        {
+            set { this.FlatCombo.SelectedItem = value; }
+            get { return this.FlatCombo.SelectedItem; }
+        }
+
+        public FlatCombo.ObjectCollection Items
+        {
+            get { return this.FlatCombo.Items; }
+        }
+
+        public FlatCombo FlatCombo
+        {
+            get { return this.Control as FlatCombo; }
+        }
+
+    }
+
+    public class FlatCombo : ComboBox, IEventHandler
+    {
+        private Boolean useTheme = true;
+        private Pen BorderPen = new Pen(SystemColors.ControlDark);
+        private SolidBrush BackBrush = new SolidBrush(SystemColors.Window);
+        private SolidBrush ArrowBrush = new SolidBrush(SystemColors.ControlText);
+        
+        public FlatCombo()
+        {
+            this.UseTheme = true;
+            EventManager.AddEventHandler(this, EventType.ApplyTheme);
+        }
+
+        public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority priority)
+        {
+            if (e.Type == EventType.ApplyTheme)
+            {
+                this.FlatStyle = PluginBase.Settings.ComboBoxFlatStyle;
+                this.UseTheme = (this.FlatStyle == FlatStyle.Popup);
+            }
+        }
+
+        public Boolean UseTheme
+        {
+            get { return this.useTheme; }
+            set
+            {
+                this.useTheme = value;
+                this.RefreshColors();
+            }
+        }
+
+        private void RefreshColors()
+        {
+            Color fore = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.ForeColor");
+            Color back = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.BackColor");
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.BorderColor");
+            this.BorderPen.Color = useTheme && border != Color.Empty ? border : SystemColors.ControlDark;
+            this.ArrowBrush.Color = useTheme && fore != Color.Empty ? fore : SystemColors.ControlText;
+            this.BackBrush.Color = useTheme && back != Color.Empty ? back : SystemColors.Window;
+            this.ForeColor = useTheme && fore != Color.Empty ? fore : SystemColors.ControlText;
+            this.BackColor = useTheme && back != Color.Empty ? back : SystemColors.Window;
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            if (!this.useTheme) return;
+            switch (m.Msg)
+            {
+                case 0x85: // WM_NCPAINT
+                case 0x14: // WM_ERASEBKGND 
+                case 0xf: // WM_PAINT
+                    Int32 pad = ScaleHelper.Scale(2);
+                    Int32 width = ScaleHelper.Scale(18);
+                    Graphics g = this.CreateGraphics();
+                    Rectangle backRect = new Rectangle(this.ClientRectangle.X, this.ClientRectangle.Y, this.ClientRectangle.Width - 1, this.ClientRectangle.Height - 1);
+                    Rectangle dropRect = new Rectangle(this.ClientRectangle.Right - width, this.ClientRectangle.Y, width, this.ClientRectangle.Height);
+                    g.FillRectangle(BackBrush, dropRect);
+                    g.DrawRectangle(BorderPen, backRect);
+                    Point middle = new Point(dropRect.Left + (dropRect.Width / 2), dropRect.Top + (dropRect.Height / 2));
+                    Point[] arrow = new Point[] 
+                    {
+                        new Point(middle.X - pad, middle.Y - 1),
+                        new Point(middle.X + pad + 1, middle.Y - 1),
+                        new Point(middle.X, middle.Y + pad)
+                    };
+                    g.FillPolygon(ArrowBrush, arrow);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        protected override void OnMouseEnter(System.EventArgs e)
+        {
+            base.OnMouseEnter(e);
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.ActiveBorderColor");
+            BorderPen.Color = border != Color.Empty ? border : SystemColors.Highlight;
+            this.Invalidate();
+        }
+
+        protected override void OnMouseLeave(System.EventArgs e)
+        {
+            base.OnMouseLeave(e);
+            if (this.Focused) return;
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.BorderColor");
+            BorderPen.Color = border != Color.Empty ? border : SystemColors.ControlDark;
+            this.Invalidate();
+        }
+
+        protected override void OnLostFocus(System.EventArgs e)
+        {
+            base.OnLostFocus(e);
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.BorderColor");
+            BorderPen.Color = border != Color.Empty ? border : SystemColors.ControlDark;
+            this.Invalidate();
+        }
+
+        protected override void OnGotFocus(System.EventArgs e)
+        {
+            base.OnGotFocus(e);
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.ActiveBorderColor");
+            BorderPen.Color = border != Color.Empty ? border : SystemColors.Highlight;
+            this.Invalidate();
+        }
+
+        protected override void OnMouseHover(System.EventArgs e)
+        {
+            base.OnMouseHover(e);
+            Color border = PluginBase.MainForm.GetThemeColor("ToolStripComboBoxControl.ActiveBorderColor");
+            BorderPen.Color = border != Color.Empty ? border : SystemColors.Highlight;
+            this.Invalidate();
         }
 
     }

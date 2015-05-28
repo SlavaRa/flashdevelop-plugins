@@ -35,7 +35,7 @@ namespace FlashDebugger
         private ToolStripButton tsbExportFiltered;
         private ToolStripButton tsbImport;
         private ToolStripTextBox tstxtFilter;
-        private ToolStripComboBox tscbFilterColumns;
+        private ToolStripComboBoxEx tscbFilterColumns;
         private Color defaultColor;
 
         public BreakPointUI(PluginMain pluginMain, BreakPointManager breakPointManager)
@@ -82,7 +82,8 @@ namespace FlashDebugger
             this.dgv.BorderStyle = BorderStyle.None;
             this.dgv.BackgroundColor = SystemColors.Window;
             this.dgv.Font = PluginBase.Settings.DefaultFont;
-            this.dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
+            if (ScaleHelper.GetScale() > 1) this.dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            else this.dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             this.dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             this.dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             this.dgv.CellBorderStyle = DataGridViewCellBorderStyle.Single;
@@ -250,7 +251,7 @@ namespace FlashDebugger
             this.tsbExportFiltered = new System.Windows.Forms.ToolStripButton();
             this.tsbImport = new System.Windows.Forms.ToolStripButton();
             this.tstxtFilter = new System.Windows.Forms.ToolStripTextBox();
-            this.tscbFilterColumns = new System.Windows.Forms.ToolStripComboBox();
+            this.tscbFilterColumns = new System.Windows.Forms.ToolStripComboBoxEx();
             this.tsActions.SuspendLayout();
             this.SuspendLayout();
             // 

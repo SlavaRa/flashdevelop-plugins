@@ -26,8 +26,8 @@ namespace System.Windows.Forms
         public static void DrawRoundedRectangle(Graphics graphics, int xAxis, int yAxis, int width, int height, int diameter, Color color)
         {
             Pen pen = new Pen(color);
-            var BaseRect = new RectangleF(xAxis, yAxis, width, height);
-            var ArcRect = new RectangleF(BaseRect.Location, new SizeF(diameter, diameter));
+            RectangleF BaseRect = new RectangleF(xAxis, yAxis, width, height);
+            RectangleF ArcRect = new RectangleF(BaseRect.Location, new SizeF(diameter, diameter));
             graphics.DrawArc(pen, ArcRect, 180, 90);
             graphics.DrawLine(pen, xAxis + (int)(diameter / 2), yAxis, xAxis + width - (int)(diameter / 2), yAxis);
             ArcRect.X = BaseRect.Right - diameter;
@@ -103,29 +103,11 @@ namespace System.Windows.Forms
                     item.Padding = new Padding(2, 2, 2, 2);
                 }
             }
-            else if (item is ToolStripTextBox)
+            else if (item is ToolStripComboBoxEx)
             {
-                var textBox = item as ToolStripTextBox;
-                Color border = GetThemeColor("ToolStripTextBoxControl.BorderColor");
-                if (border != Color.Empty) // Are we theming?
-                {
-                    textBox.Margin = new Padding(2, 1, 2, 1);
-                    textBox.BorderStyle = BorderStyle.None;
-                }
-            }
-            else if (item is ToolStripComboBox)
-            {
-                Font font = PluginBase.MainForm.Settings.DefaultFont;
-                ToolStripComboBox comboBox = item as ToolStripComboBox;
-                Color border = GetThemeColor("ToolStripComboBoxControl.BorderColor");
-                if (border != Color.Empty && comboBox.FlatStyle == FlatStyle.Popup) // Are we theming, default flat style?
-                {
-                    comboBox.FlatStyle = FlatStyle.Flat;
-                    if (font.Size > 8.25f && comboBox.Font.Size != font.Size - 0.5f)
-                    {
-                        comboBox.Font = new Font(font.FontFamily, font.Size - 0.5f);
-                    }
-                }
+                ToolStripComboBoxEx comboBox = item as ToolStripComboBoxEx;
+                comboBox.Margin = new Padding(2, 0, 2, 0);
+                comboBox.FlatCombo.UseTheme = useTheme;
             }
         }
 
@@ -136,20 +118,26 @@ namespace System.Windows.Forms
             Color cborder = GetThemeColor("ToolStripComboBoxControl.BorderColor");
             foreach (ToolStripItem item in this.toolStrip.Items)
             {
-                if (item is ToolStripTextBox && tborder != Color.Empty)
+                if (item is ToolStripTextBox)
                 {
-                    var textBox = item as ToolStripTextBox;
-                    var size = textBox.TextBox.Size;
-                    var location = textBox.TextBox.Location;
-                    e.Graphics.FillRectangle(new SolidBrush(item.BackColor), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
-                    e.Graphics.DrawRectangle(new Pen(tborder), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
-                }
-                else if (item is ToolStripComboBox && cborder != Color.Empty)
-                {
-                    var comboBox = item as ToolStripComboBox;
-                    var size = comboBox.ComboBox.Size;
-                    var location = comboBox.ComboBox.Location;
-                    e.Graphics.DrawRectangle(new Pen(cborder), location.X - 1, location.Y - 1, size.Width + 1, size.Height + 1);
+                    ToolStripTextBox textBox = item as ToolStripTextBox;
+                    if (tborder != Color.Empty)
+                    {
+                        Size size = textBox.TextBox.Size;
+                        Point location = textBox.TextBox.Location;
+                        if (textBox.BorderStyle != BorderStyle.None)
+                        {
+                            textBox.Margin = new Padding(2, 1, 2, 1);
+                            textBox.BorderStyle = BorderStyle.None;
+                        }
+                        e.Graphics.FillRectangle(new SolidBrush(item.BackColor), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
+                        e.Graphics.DrawRectangle(new Pen(tborder), location.X - 2, location.Y - 3, size.Width + 2, size.Height + 6);
+                    }
+                    else if (textBox.BorderStyle != BorderStyle.Fixed3D) // Reset
+                    {
+                        textBox.Margin = new Padding(0);
+                        textBox.BorderStyle = BorderStyle.Fixed3D;
+                    }
                 }
             }
         }

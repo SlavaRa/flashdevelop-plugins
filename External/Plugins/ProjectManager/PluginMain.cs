@@ -193,7 +193,7 @@ namespace ProjectManager
             menus.BuildProject.Click += BuildProjectClick;
             menus.View.Click += delegate { OpenPanel(); };
             menus.GlobalClasspaths.Click += delegate { OpenGlobalClasspaths(); };
-            menus.ConfigurationSelector.SelectedIndexChanged += delegate 
+            menus.ConfigurationSelector.FlatCombo.SelectedIndexChanged += delegate 
             {
                 bool isDebug = menus.ConfigurationSelector.Text == TextHelper.GetString("Info.Debug");
                 FlexCompilerShell.Cleanup();
@@ -202,7 +202,7 @@ namespace ProjectManager
                 if (project != null) project.TraceEnabled = isDebug;
             };
             menus.TargetBuildSelector.KeyDown += new KeyEventHandler(TargetBuildSelector_KeyDown);
-            menus.TargetBuildSelector.SelectedIndexChanged += delegate { ApplyTargetBuild(); };
+            menus.TargetBuildSelector.FlatCombo.SelectedIndexChanged += delegate { ApplyTargetBuild(); };
             menus.TargetBuildSelector.LostFocus += delegate { ApplyTargetBuild(); };
             
             menus.ProjectMenu.NewProject.Click += delegate { NewProject(); };
@@ -239,6 +239,7 @@ namespace ProjectManager
             pluginUI.TreeBar.ShowHidden.Click += delegate { ToggleShowHidden(); };
             pluginUI.TreeBar.Synchronize.Click += delegate { ToggleTrackActiveDocument(); };
             pluginUI.TreeBar.SynchronizeMain.Click += delegate { TreeSyncToMainFile(); };
+            pluginUI.TreeBar.CollapseAll.Click += delegate { CollapseAll(); };
             pluginUI.TreeBar.ProjectProperties.Click += delegate { OpenProjectProperties(); };
             pluginUI.TreeBar.RefreshSelected.Click += delegate { TreeRefreshSelectedNode(); };
             pluginUI.TreeBar.ProjectTypes.Click += delegate 
@@ -1595,6 +1596,17 @@ namespace ProjectManager
             {
                 Tree.Select(activeProject.GetAbsolutePath(activeProject.CompileTargets[0]));
                 Tree.SelectedNode.EnsureVisible();
+            }
+        }
+
+        private void CollapseAll()
+        {
+            foreach (TreeNode rootNode in Tree.Nodes)
+            {
+                foreach (TreeNode node in rootNode.Nodes)
+                {
+                    node.Collapse(false);
+                }
             }
         }
 
