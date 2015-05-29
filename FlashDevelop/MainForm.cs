@@ -724,7 +724,7 @@ namespace FlashDevelop
         }
 
         /// <summary>
-        /// Initializes the config detection
+        /// Initializes the theme and config detection
         /// </summary>
         private void InitializeConfig()
         {
@@ -744,6 +744,9 @@ namespace FlashDevelop
                     File.Delete(appman);
                     this.refreshConfig = true;
                 }
+                // Load current theme for applying later
+                String currentTheme = Path.Combine(PathHelper.ThemesDir, "CURRENT");
+                if (File.Exists(currentTheme)) ThemeManager.LoadTheme(currentTheme);
                 // Apply FD dir and appman dir to PATH
                 String amPath = Path.Combine(PathHelper.ToolDir, "AppMan");
                 String oldPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Process);
@@ -825,8 +828,6 @@ namespace FlashDevelop
                 this.appSettings = (SettingObject)obj;
             }
             SettingObject.EnsureValidity(this.appSettings);
-            String currentTheme = Path.Combine(PathHelper.ThemesDir, "CURRENT");
-            if (File.Exists(currentTheme)) ThemeManager.LoadTheme(currentTheme);
             PlatformData.Load(Path.Combine(PathHelper.SettingDir, "Platforms"));
             FileStateManager.RemoveOldStateFiles();
         }
@@ -1974,19 +1975,25 @@ namespace FlashDevelop
         /// </summary>
         public void CloseAllDocuments(Boolean exceptCurrent)
         {
-            Int32 closeIndex = 0;
-            Int32 documentCount = this.Documents.Length;
+            CloseAllDocuments(exceptCurrent, false);
+        }
+
+        public void CloseAllDocuments(Boolean exceptCurrent, Boolean exceptOtherPanes)
+        {
             ITabbedDocument current = this.CurrentDocument;
+            DockPane currentPane = (current == null) ? null : current.DockHandler.PanelPane;
             this.closeAllCanceled = false; this.closingAll = true;
-            for (Int32 i = 0; i < documentCount; i++)
+            var documents = new List<ITabbedDocument>(Documents);
+
+            foreach (var document in documents)
             {
-                ITabbedDocument document = this.Documents[closeIndex];
-                if (exceptCurrent)
-                {
-                    if (document != current) document.Close();
-                    else closeIndex = 1;
-                }
-                else document.Close();
+                Boolean close = true;
+                if (exceptCurrent && document == current)
+                    close = false;
+                if (exceptOtherPanes && document.DockHandler.PanelPane != currentPane)
+                    close = false;
+                
+                if (close) document.Close();
             }
             this.closingAll = false;
         }
@@ -2574,19 +2581,19 @@ namespace FlashDevelop
         }
 
         /// <summary>
-        /// Closes all open documents
+        /// Closes all open documents in the current pane
         /// </summary>
         public void CloseAll(Object sender, System.EventArgs e)
         {
-            this.CloseAllDocuments(false);
+            this.CloseAllDocuments(false, true);
         }
 
         /// <summary>
-        /// Closes all open documents exept the current
+        /// Closes all open documents except the current in the current pane
         /// </summary>
         public void CloseOthers(Object sender, System.EventArgs e)
         {
-            this.CloseAllDocuments(true);
+            this.CloseAllDocuments(true, true);
         }
 
         /// <summary>
