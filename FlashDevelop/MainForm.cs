@@ -93,39 +93,6 @@ namespace FlashDevelop
 
         #endregion
 
-        #region Flicker Prevention
-
-        // See: http://www.angryhacker.com/blog/archive/2010/07/21/how-to-get-rid-of-flicker-on-windows-forms-applications.aspx
-
-        private Int32 originalStyle = -1;
-        private Boolean enableBuffering = true;
-
-        /// <summary>
-        /// Reduce artifacts on FlashDevelop start
-        /// </summary>
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                if (originalStyle == -1) originalStyle = base.CreateParams.ExStyle;
-                CreateParams cp = base.CreateParams;
-                if (enableBuffering) cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED
-                else cp.ExStyle = originalStyle;
-                return cp;
-            }
-        }
-
-        /// <summary>
-        /// Turn off buffering after form show
-        /// </summary>
-        private void TurnOffBuffering()
-        {
-            this.enableBuffering = false;
-            this.MaximizeBox = true;
-        }
-
-        #endregion
-
         #region Private Properties
 
         /* AppMan */
@@ -1102,7 +1069,6 @@ namespace FlashDevelop
         /// </summary>
         private void OnMainFormShow(Object sender, System.EventArgs e)
         {
-            this.TurnOffBuffering();
             if (RecoveryDialog.ShouldShowDialog()) RecoveryDialog.Show();
         }
 
@@ -2303,6 +2269,15 @@ namespace FlashDevelop
         public void ReopenClosed(Object sender, System.EventArgs e)
         {
             OldTabsManager.OpenOldTabDocument();
+        }
+
+        /// <summary>
+        /// Clears invalid entries from the old documents list
+        /// </summary>
+        public void CleanReopenList(Object sender, System.EventArgs e)
+        {
+            FileHelper.FilterByExisiting(this.appSettings.PreviousDocuments, true);
+            ButtonManager.PopulateReopenMenu();
         }
 
         /// <summary>
@@ -3959,7 +3934,7 @@ namespace FlashDevelop
         /// </summary>
         public void KillProcess(Object sender, System.EventArgs e)
         {
-            KillProcess();
+            this.KillProcess();
         }
 
         /// <summary>
@@ -4021,8 +3996,7 @@ namespace FlashDevelop
             {
                 Host host = new Host();
                 String[] args = file.Split(new Char[1]{';'});
-                if (args.Length == 1 || String.IsNullOrEmpty(args[1]))
-                    return; // no file selected / the open file dialog was cancelled
+                if (args.Length == 1 || String.IsNullOrEmpty(args[1])) return; // no file selected / the open file dialog was cancelled
                 if (args[0] == "Internal") host.ExecuteScriptInternal(args[1], false);
                 else if (args[0] == "Development") host.ExecuteScriptInternal(args[1], true);
                 else host.ExecuteScriptExternal(file);

@@ -917,6 +917,10 @@
   <data name="FlashDevelop.Label.ClearBreakpoints" xml:space="preserve">
     <value>清除断点</value>
   </data>
+  <data name="FlashDevelop.Label.CleanReopenList" xml:space="preserve">
+    <value>&amp;Clean Recent Files List</value>
+    <comment>Added after 5.0.0</comment>
+  </data>
   <data name="FlashDevelop.Label.ClearReopenList" xml:space="preserve">
     <value>清除最近打开的文档列表(&amp;C)</value>
   </data>
@@ -1882,6 +1886,10 @@
   </data>
   <data name="ProjectManager.Label.Cancel" xml:space="preserve">
     <value>取消(&amp;C)</value>
+  </data>
+  <data name="ProjectManager.Label.CleanRecentProjects" xml:space="preserve">
+    <value>&amp;Clean Recent Projects List</value>
+    <comment>Added after 5.0.0</comment>
   </data>
   <data name="ProjectManager.Label.ClearRecentProjects" xml:space="preserve">
     <value>清除最近打开的项目列表(&amp;C)</value>
@@ -5940,10 +5948,6 @@
   </data>
   <data name="FlashDebugger.Description.CopyTreeMaxSize" xml:space="preserve">
     <value>The approximate maximum size, in characters, the object tree may take when copied to the clipboard.</value>
-    <comment>Added after 4.7.2</comment>
-  </data>
-  <data name="FlashDebugger.Label.CopyValue" xml:space="preserve">
-    <value>Copy Value</value>
     <comment>Added after 4.7.2</comment>
   </data>
   <data name="FlashDebugger.Label.CopyID" xml:space="preserve">

@@ -917,6 +917,10 @@ Alternatively, Adobe Flash Professional can also be used for syntax checking - p
   <data name="FlashDevelop.Label.ClearBreakpoints" xml:space="preserve">
     <value>Clear Breakpoints</value>
   </data>
+  <data name="FlashDevelop.Label.CleanReopenList" xml:space="preserve">
+    <value>&amp;Clean Recent Files List</value>
+    <comment>Added after 5.0.0</comment>
+  </data>
   <data name="FlashDevelop.Label.ClearReopenList" xml:space="preserve">
     <value>&amp;Clear Recent Files List</value>
   </data>
@@ -1882,6 +1886,10 @@ Alternatively, Adobe Flash Professional can also be used for syntax checking - p
   </data>
   <data name="ProjectManager.Label.Cancel" xml:space="preserve">
     <value>&amp;Cancel</value>
+  </data>
+  <data name="ProjectManager.Label.CleanRecentProjects" xml:space="preserve">
+    <value>&amp;Clean Recent Projects List</value>
+    <comment>Added after 5.0.0</comment>
   </data>
   <data name="ProjectManager.Label.ClearRecentProjects" xml:space="preserve">
     <value>&amp;Clear Recent Projects List</value>
@@ -5943,10 +5951,6 @@ Custom locales must be an extension of a default locale, e.g. en-US.</value>
   </data>
   <data name="FlashDebugger.Description.CopyTreeMaxSize" xml:space="preserve">
     <value>The approximate maximum size, in characters, the object tree may take when copied to the clipboard.</value>
-    <comment>Added after 4.7.2</comment>
-  </data>
-  <data name="FlashDebugger.Label.CopyValue" xml:space="preserve">
-    <value>Copy Value</value>
     <comment>Added after 4.7.2</comment>
   </data>
   <data name="FlashDebugger.Label.CopyID" xml:space="preserve">

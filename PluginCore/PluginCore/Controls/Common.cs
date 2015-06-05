@@ -162,6 +162,12 @@ namespace System.Windows.Forms
             EventManager.AddEventHandler(this, EventType.ApplyTheme);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            EventManager.RemoveEventHandler(this);
+            base.Dispose(disposing);
+        }
+
         public void HandleEvent(object sender, NotifyEvent e, HandlingPriority priority)
         {
             if (e.Type == EventType.ApplyTheme)
@@ -215,7 +221,7 @@ namespace System.Windows.Forms
             this.DrawSubItem += this.OnDrawSubItem;
             this.DrawItem += this.OnDrawItem;
             this.expandDelay = new Timer();
-            this.expandDelay.Interval = 10;
+            this.expandDelay.Interval = 50;
             this.expandDelay.Tick += this.ExpandDelayTick;
             this.expandDelay.Enabled = true;
             this.expandDelay.Start();
@@ -278,6 +284,11 @@ namespace System.Windows.Forms
             this.FlatCombo.Font = font;
         }
 
+        protected override Size DefaultSize
+        {
+            get { return new Size(100, 22); }
+        }
+
         public ComboBoxStyle DropDownStyle
         {
             set { this.FlatCombo.DropDownStyle = value; }
@@ -320,11 +331,19 @@ namespace System.Windows.Forms
         private Pen BorderPen = new Pen(SystemColors.ControlDark);
         private SolidBrush BackBrush = new SolidBrush(SystemColors.Window);
         private SolidBrush ArrowBrush = new SolidBrush(SystemColors.ControlText);
+        private ComboBoxStyle prevStyle = ComboBoxStyle.DropDown;
+        private Boolean updatingStyle = false;
         
         public FlatCombo()
         {
             this.UseTheme = true;
             EventManager.AddEventHandler(this, EventType.ApplyTheme);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            EventManager.RemoveEventHandler(this);
+            base.Dispose(disposing);
         }
 
         public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority priority)
@@ -373,7 +392,7 @@ namespace System.Windows.Forms
                     Graphics g = this.CreateGraphics();
                     Rectangle backRect = new Rectangle(this.ClientRectangle.X, this.ClientRectangle.Y, this.ClientRectangle.Width - 1, this.ClientRectangle.Height - 1);
                     Rectangle dropRect = new Rectangle(this.ClientRectangle.Right - width, this.ClientRectangle.Y, width, this.ClientRectangle.Height);
-                    g.FillRectangle(BackBrush, dropRect);
+                    if (this.Enabled) g.FillRectangle(BackBrush, dropRect);
                     g.DrawRectangle(BorderPen, backRect);
                     Point middle = new Point(dropRect.Left + (dropRect.Width / 2), dropRect.Top + (dropRect.Height / 2));
                     Point[] arrow = new Point[] 
@@ -382,11 +401,31 @@ namespace System.Windows.Forms
                         new Point(middle.X + pad + 1, middle.Y - 1),
                         new Point(middle.X, middle.Y + pad)
                     };
-                    g.FillPolygon(ArrowBrush, arrow);
+                    if (this.Enabled) g.FillPolygon(ArrowBrush, arrow);
+                    else g.FillPolygon(SystemBrushes.ControlDark, arrow);
                     break;
                 default:
                     break;
             }
+        }
+
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+            this.updatingStyle = true;
+            if (this.Enabled) this.DropDownStyle = this.prevStyle;
+            else
+            {
+                this.prevStyle = this.DropDownStyle;
+                this.DropDownStyle = ComboBoxStyle.DropDownList;
+            }
+            this.updatingStyle = false;
+        }
+
+        protected override void OnDropDownStyleChanged(EventArgs e)
+        {
+            base.OnDropDownStyleChanged(e);
+            if (!this.updatingStyle) this.prevStyle = this.DropDownStyle;
         }
 
         protected override void OnMouseEnter(System.EventArgs e)

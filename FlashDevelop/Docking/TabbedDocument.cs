@@ -294,6 +294,7 @@ namespace FlashDevelop.Docking
             this.editor2.Dock = DockStyle.Fill;
             this.splitContainer = new SplitContainer();
             this.splitContainer.Name = "fdSplitView";
+            this.splitContainer.SplitterWidth = ScaleHelper.Scale(this.splitContainer.SplitterWidth);
             this.splitContainer.Orientation = Orientation.Horizontal;
             this.splitContainer.BackColor = SystemColors.Control;
             this.splitContainer.Panel1.Controls.Add(this.editor);
@@ -570,10 +571,16 @@ namespace FlashDevelop.Docking
             this.UpdateDocumentIcon(this.FileName);
         }
 
-        public void Close()
+        /// <summary>
+        /// Close the document and update buttons
+        /// </summary>
+        public new void Close()
         {
             base.Close();
             ButtonManager.UpdateFlaggedButtons();
         }
+
     }
+
 }
+

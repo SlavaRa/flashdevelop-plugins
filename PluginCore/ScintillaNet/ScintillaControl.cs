@@ -40,10 +40,44 @@ namespace ScintillaNet
         private int lastSelectionStart = 0;
         private int lastSelectionEnd = 0;
 
-        #region ScrollBarEx
+        #region ScrollBars
 
         private ScrollBarEx vScrollBar;
         private ScrollBarEx hScrollBar;
+
+        /// <summary>
+        /// Is the vertical scroll bar visible?
+        /// </summary>
+        public Boolean IsVScrollBar
+        {
+            get
+            {
+                if (this.Controls.Contains(this.vScrollBar)) return this.vScrollBar.Visible;
+                else return SPerform(2281, 0, 0) != 0;
+            }
+            set
+            {
+                if (this.Controls.Contains(this.vScrollBar)) this.vScrollBar.Visible = value;
+                else SPerform(2280, (uint)(value ? 1 : 0), 0);
+            }
+        }
+
+        /// <summary>
+        /// Is the horizontal scroll bar visible? 
+        /// </summary>
+        public Boolean IsHScrollBar
+        {
+            get
+            {
+                if (this.Controls.Contains(this.hScrollBar)) return this.hScrollBar.Visible;
+                else return SPerform(2131, 0, 0) != 0;
+            }
+            set
+            {
+                if (this.Controls.Contains(this.hScrollBar)) this.hScrollBar.Visible = value;
+                else SPerform(2130, (uint)(value ? 1 : 0), 0);
+            }
+        }
 
         /// <summary>
         /// Handle the incoming theme events
@@ -70,6 +104,7 @@ namespace ScintillaNet
         private void InitScrollBars(ScintillaControl sender)
         {
             sender.vScrollBar = new ScrollBarEx();
+            sender.vScrollBar.OverScroll = true;
             sender.vScrollBar.Width = ScaleHelper.Scale(17);
             sender.vScrollBar.Orientation = ScrollBarOrientation.Vertical;
             sender.vScrollBar.ContextMenuStrip.Renderer = new DockPanelStripRenderer();
@@ -80,11 +115,11 @@ namespace ScintillaNet
             sender.hScrollBar.Orientation = ScrollBarOrientation.Horizontal;
             sender.hScrollBar.ContextMenuStrip.Renderer = new DockPanelStripRenderer();
             sender.hScrollBar.Dock = DockStyle.Bottom;
-            sender.hScrollBar.LargeChange *= 2;
-            if (PluginBase.MainForm.GetThemeColor("ScrollBar.ForeColor") != Color.Empty)
-            {
-                sender.AddScrollBars(sender);
-            }
+            Color foreColor = PluginBase.MainForm.GetThemeColor("ScrollBar.ForeColor");
+            if (foreColor != Color.Empty) sender.AddScrollBars(sender);
+            PluginBase.MainForm.ThemeControls(sender.vScrollBar);
+            PluginBase.MainForm.ThemeControls(sender.hScrollBar);
+            EventManager.AddEventHandler(this, EventType.ApplyTheme);
         }
 
         /// <summary>
@@ -92,14 +127,14 @@ namespace ScintillaNet
         /// </summary>
         private void OnScrollUpdate(ScintillaControl sender)
         {
-            Int32 vMax = sender.LineCount - 1;
+            Int32 vMax = sender.LinesVisible;
             Int32 vPage = sender.LinesOnScreen;
             sender.vScrollBar.Scroll -= sender.OnScrollBarScroll;
             sender.vScrollBar.Minimum = 0;
-            sender.vScrollBar.Maximum = vMax;
+            sender.vScrollBar.Maximum = vMax - 1;
             sender.vScrollBar.LargeChange = vPage;
-            sender.vScrollBar.CurrentPosition = sender.CurrentLine;
             sender.vScrollBar.Value = sender.FirstVisibleLine;
+            sender.vScrollBar.CurrentPosition = vMax > 1 ? sender.VisibleFromDocLine(sender.CurrentLine) : -1;
             sender.vScrollBar.Scroll += sender.OnScrollBarScroll;
             sender.hScrollBar.Scroll -= sender.OnScrollBarScroll;
             sender.hScrollBar.Minimum = 0;
@@ -107,11 +142,7 @@ namespace ScintillaNet
             sender.hScrollBar.LargeChange = sender.Width;
             sender.hScrollBar.Value = sender.XOffset;
             sender.hScrollBar.Scroll += sender.OnScrollBarScroll;
-            sender.vScrollBar.Visible = vMax > 1;
-            if (sender.vScrollBar.Visible == vMax > 1)
-            {
-                sender.OnResize(null, null);
-            }
+            sender.vScrollBar.Enabled = vMax > 1;
         }
 
         /// <summary>
@@ -119,11 +150,13 @@ namespace ScintillaNet
         /// </summary>
         private void OnScrollBarScroll(Object sender, ScrollEventArgs e)
         {
+            this.Painted -= this.OnScrollUpdate;
             if (e.ScrollOrientation == ScrollOrientation.VerticalScroll)
             {
-                if (e.OldValue != -1) this.LineScroll(0, e.NewValue - e.OldValue);
+                if (e.OldValue != -1) this.FirstVisibleLine = e.NewValue;
             }
             else this.XOffset = this.hScrollBar.Value;
+            this.Painted += this.OnScrollUpdate;
         }
 
         /// <summary>
@@ -131,18 +164,19 @@ namespace ScintillaNet
         /// </summary>
         private void AddScrollBars(ScintillaControl sender)
         {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke((MethodInvoker)delegate { this.AddScrollBars(sender); });
-                return;
-            }
-            sender.IsVScrollBar = false;
-            sender.IsHScrollBar = false;
+            Boolean vScroll = sender.IsVScrollBar;
+            Boolean hScroll = sender.IsHScrollBar;
+            sender.IsVScrollBar = false; // Hide builtin
+            sender.IsHScrollBar = false; // Hide builtin
+            sender.vScrollBar.VisibleChanged += OnResize;
+            sender.hScrollBar.VisibleChanged += OnResize;
             sender.vScrollBar.Scroll += sender.OnScrollBarScroll;
             sender.hScrollBar.Scroll += sender.OnScrollBarScroll;
             sender.Controls.Add(sender.hScrollBar);
             sender.Controls.Add(sender.vScrollBar);
-            sender.UpdateUI += new UpdateUIHandler(sender.OnScrollUpdate);
+            sender.Painted += sender.OnScrollUpdate;
+            sender.IsVScrollBar = vScroll;
+            sender.IsHScrollBar = hScroll;
             sender.OnResize(null, null);
         }
 
@@ -151,18 +185,17 @@ namespace ScintillaNet
         /// </summary>
         private void RemoveScrollBars(ScintillaControl sender)
         {
-            if (this.InvokeRequired)
-            {
-                this.BeginInvoke((MethodInvoker)delegate { this.RemoveScrollBars(sender); });
-                return;
-            }
-            sender.IsVScrollBar = true;
-            sender.IsHScrollBar = true;
+            Boolean vScroll = sender.IsVScrollBar;
+            Boolean hScroll = sender.IsHScrollBar;
+            sender.vScrollBar.VisibleChanged -= OnResize;
+            sender.hScrollBar.VisibleChanged -= OnResize;
             sender.vScrollBar.Scroll -= sender.OnScrollBarScroll;
             sender.hScrollBar.Scroll -= sender.OnScrollBarScroll;
             sender.Controls.Remove(sender.hScrollBar);
             sender.Controls.Remove(sender.vScrollBar);
-            sender.UpdateUI -= new UpdateUIHandler(sender.OnScrollUpdate);
+            sender.Painted -= sender.OnScrollUpdate;
+            sender.IsVScrollBar = vScroll;
+            sender.IsHScrollBar = hScroll;
             sender.OnResize(null, null);
         }
 
@@ -186,14 +219,13 @@ namespace ScintillaNet
                     directPointer = (int)SlowPerform(2185, 0, 0);
                     directPointer = DirectPointer;
                 }
-                //EventManager.AddEventHandler(this, EventType.ApplyTheme);
                 UpdateUI += new UpdateUIHandler(OnUpdateUI);
                 UpdateUI += new UpdateUIHandler(OnBraceMatch);
                 UpdateUI += new UpdateUIHandler(OnCancelHighlight);
                 DoubleClick += new DoubleClickHandler(OnBlockSelect);
                 CharAdded += new CharAddedHandler(OnSmartIndent);
                 Resize += new EventHandler(OnResize);
-                //this.InitScrollBars(this);
+                this.InitScrollBars(this);
             }
             catch (Exception ex)
             {
@@ -203,15 +235,16 @@ namespace ScintillaNet
 
         protected override void Dispose(bool disposing)
         {
+            EventManager.RemoveEventHandler(this);
             if (highlightDelay != null) highlightDelay.Stop();
             base.Dispose(disposing);
         }
 
         public void OnResize(object sender, EventArgs e)
         {
-            Int32 vsbWidth = this.vScrollBar != null && this.vScrollBar.Visible && this.Controls.Contains(this.vScrollBar) ? this.vScrollBar.Width : 0;
-            Int32 hsbHeight = this.hScrollBar != null && this.hScrollBar.Visible && this.Controls.Contains(this.hScrollBar) ? this.hScrollBar.Height : 0;
-            if (Win32.ShouldUseWin32()) SetWindowPos(this.hwndScintilla, 0, this.ClientRectangle.X, this.ClientRectangle.Y, this.ClientRectangle.Width - vsbWidth, this.ClientRectangle.Height - hsbHeight, 0);
+            Int32 vsbWidth = this.Controls.Contains(this.vScrollBar) && this.vScrollBar.Visible ? this.vScrollBar.Width : 0;
+            Int32 hsbHeight = this.Controls.Contains(this.hScrollBar) && this.hScrollBar.Visible ? this.hScrollBar.Height : 0;
+            if (Win32.ShouldUseWin32()) SetWindowPos(this.hwndScintilla, 0, ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width - vsbWidth, ClientRectangle.Height - hsbHeight, 0);
         }
 
         #endregion
@@ -1447,21 +1480,6 @@ namespace ScintillaNet
             {
                 SPerform(2124 , (uint)(value ? 1 : 0), 0);
             }
-        }
-
-        /// <summary>
-        /// Is the horizontal scroll bar visible? 
-        /// </summary>
-        public bool IsHScrollBar
-        {
-            get 
-            {
-                return SPerform(2131, 0, 0) != 0;
-            }
-            set
-            {
-                SPerform(2130, (uint)(value ? 1 : 0), 0);
-            }
         }   
 
         /// <summary>
@@ -1630,6 +1648,10 @@ namespace ScintillaNet
         /// </summary>
         public int FirstVisibleLine
         {
+            set
+            {
+                SPerform(2613, (uint)value, 0);
+            }
             get 
             {
                 return (int)SPerform(2152, 0, 0);
@@ -1796,17 +1818,6 @@ namespace ScintillaNet
                 SPerform(2198, (uint)value, 0);
             }
         }
-        
-        /// <summary>
-        /// Is a line visible?
-        /// </summary>  
-        public bool IsLineVisible
-        {
-            get 
-            {
-                return SPerform(2228, 0, 0) != 0;
-            }
-        }
 
         /// <summary>
         /// Does a tab pressed when caret is within indentation indent?
@@ -1957,22 +1968,7 @@ namespace ScintillaNet
             {
                 SPerform(2277, (uint)value , 0);
             }
-        }   
-
-        /// <summary>
-        /// Is the vertical scroll bar visible?
-        /// </summary>
-        public bool IsVScrollBar
-        {
-            get 
-            {
-                return SPerform(2281, 0, 0) != 0;
-            }
-            set
-            {
-                SPerform(2280, (uint)(value ? 1 : 0), 0);
-            }
-        }   
+        } 
 
         /// <summary>
         /// Is drawing done in two phases with backgrounds drawn before faoregrounds?
@@ -2511,7 +2507,15 @@ namespace ScintillaNet
         public int LastChild(int line)
         {
             return (int)SPerform(2224, (uint)line, 0);
-        }   
+        }
+
+        /// <summary>
+        /// Is a line visible?
+        /// </summary>  
+        public bool GetLineVisible(Int32 line)
+        {
+            return SPerform(2228, (uint)line, 0) != 0;
+        }
 
         /// <summary>
         /// Find the parent line of a child line.
@@ -5796,6 +5800,22 @@ namespace ScintillaNet
         #endregion 
 
         #region Misc Custom Stuff
+
+        /// <summary>
+        /// Gets the amount of lines visible (ie. not folded)
+        /// </summary>
+        private Int32 LinesVisible
+        {
+            get 
+            {
+                Int32 vlineCount = 0;
+                for (Int32 i = 0; i < LineCount; i++)
+                {
+                    if (this.GetLineVisible(i)) vlineCount++;
+                }
+                return vlineCount;
+            }
+        }
 
         /// <summary>
         /// Set caret to line to indent position and ensure it is visible.
