@@ -1021,7 +1021,7 @@ namespace FlashDevelop
             //
             this.AllowDrop = true;
             this.Name = "MainForm";
-            this.Text = "FlashDevelop";
+            this.Text = DistroConfig.DISTRIBUTION_NAME;
             this.Controls.Add(this.dockPanel);
             this.Controls.Add(this.toolStripPanel);
             this.Controls.Add(this.statusStrip);
@@ -1618,13 +1618,13 @@ namespace FlashDevelop
         {
             IProject project = PluginBase.CurrentProject;
             ITabbedDocument document = this.CurrentDocument;
-            if (project != null) this.Text = project.Name + " - FlashDevelop";
+            if (project != null) this.Text = project.Name + " - " + DistroConfig.DISTRIBUTION_NAME;
             else if (document != null && document.IsEditable)
             {
                 String file = Path.GetFileName(document.FileName);
-                this.Text = file + " - FlashDevelop";
+                this.Text = file + " - " + DistroConfig.DISTRIBUTION_NAME;
             }
-            else this.Text = "FlashDevelop";
+            else this.Text = DistroConfig.DISTRIBUTION_NAME;
         }
 
         /// <summary>
