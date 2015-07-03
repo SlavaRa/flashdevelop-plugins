@@ -184,10 +184,9 @@ namespace ASCompletion.Completion
                         if (features.hasGenerics && position > 2)
                         {
                             char c0 = (char)Sci.CharAt(position - 2);
-                            bool result = false;
                             if (c0 == '.' /*|| Char.IsLetterOrDigit(c0)*/)
                                 return HandleColonCompletion(Sci, "", autoHide);
-                            return result;
+                            return false;
                         }
                         else break;
 
@@ -462,6 +461,20 @@ namespace ASCompletion.Completion
         {
             if (!ASContext.Context.IsFileValid || (Sci == null)) return false;
 
+            // let the context handle goto declaration if we couldn't find anything
+            if (!InternalDeclarationLookup(Sci))
+            {
+                ASExpr expression = GetExpression(Sci, Sci.CurrentPos);
+                if (expression != null)
+                {
+                    return ASContext.Context.HandleGotoDeclaration(Sci, expression);
+                }
+            }
+            return true;
+        }
+
+        static private bool InternalDeclarationLookup(ScintillaControl Sci)
+        {
             // get type at cursor position
             int position = Sci.WordEndPosition(Sci.CurrentPos, true);
             ASResult result = GetExpressionType(Sci, position, false);
@@ -514,6 +527,16 @@ namespace ASCompletion.Completion
             return false;
         }
 
+        static public void SaveLastLookupPosition(ScintillaControl Sci)
+        {
+            if (Sci != null)
+            {
+                int lookupLine = Sci.CurrentLine;
+                int lookupCol = Sci.CurrentPos - Sci.PositionFromLine(lookupLine);
+                ASContext.Panel.SetLastLookupPosition(ASContext.Context.CurrentFile, lookupLine, lookupCol);
+            }
+        }
+
         /// <summary>
         /// Show resolved element declaration
         /// </summary>
@@ -525,13 +548,7 @@ namespace ASCompletion.Completion
             if (model == null || model.FileName == "") return false;
             ClassModel inClass = result.InClass ?? result.Type;
 
-            // for Back command
-            if (Sci != null)
-            {
-                int lookupLine = Sci.CurrentLine;
-                int lookupCol = Sci.CurrentPos - Sci.PositionFromLine(lookupLine);
-                ASContext.Panel.SetLastLookupPosition(ASContext.Context.CurrentFile, lookupLine, lookupCol);
-            }
+            SaveLastLookupPosition(Sci);
 
             if (model != ASContext.Context.CurrentModel)
             {
@@ -3956,8 +3973,18 @@ namespace ASCompletion.Completion
                 ASExpr expr = GetExpression(sci, position + text.Length);
                 if (expr.Value == null) return;
 
-                // look for a snippet
                 ContextFeatures features = ASContext.Context.Features;
+
+                // add ; for imports
+                if (trigger != ';' && expr.WordBefore != null 
+                    && (expr.WordBefore == features.importKey || expr.WordBefore == features.importKeyAlt))
+                {
+                    sci.InsertText(sci.CurrentPos, ";");
+                    sci.SetSel(sci.CurrentPos + 1, sci.CurrentPos + 1);
+                    return;
+                }
+
+                // look for a snippet
                 if (trigger == '\t' && expr.Value.IndexOf(features.dot) < 0)
                 {
                     foreach(string key in features.codeKeywords)
@@ -4052,7 +4079,7 @@ namespace ASCompletion.Completion
             if (inFile == null || import == null)
                 return false;
 
-            if (expr.Separator == ' ' && expr.WordBefore != null && expr.WordBefore != "")
+            if (expr.Separator == ' ' && !string.IsNullOrEmpty(expr.WordBefore))
             {
                 if (expr.WordBefore == features.importKey || expr.WordBefore == features.importKeyAlt
                     /*|| (!features.HasTypePreKey(expr.WordBefore) && expr.WordBefore != "case" && expr.WordBefore != "return")*/)
