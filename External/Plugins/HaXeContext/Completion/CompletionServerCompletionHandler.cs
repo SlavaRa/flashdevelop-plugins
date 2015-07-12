@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
-using PluginCore;
-using ProjectManager.Projects.Haxe;
-using PluginCore.Managers;
-using System;
 using System.Text.RegularExpressions;
+using PluginCore;
+using PluginCore.Managers;
+using ProjectManager.Projects.Haxe;
 
 namespace HaXeContext
 {
@@ -33,6 +33,9 @@ namespace HaXeContext
             catch { return false; }
         }
 
+        /// <summary>
+        /// Allows an object to try to free resources and perform other cleanup operations before it is reclaimed by garbage collection.
+        /// </summary>
         ~CompletionServerCompletionHandler()
         {
             Stop();
@@ -47,7 +50,7 @@ namespace HaXeContext
             {
                 var client = new TcpClient("127.0.0.1", port);
                 var writer = new StreamWriter(client.GetStream());
-                writer.WriteLine("--cwd " + (PluginBase.CurrentProject as HaxeProject).Directory);
+                writer.WriteLine("--cwd " + ((HaxeProject) PluginBase.CurrentProject).Directory);
                 foreach (var arg in args)
                     writer.WriteLine(arg);
                 writer.Write("\0");
@@ -71,17 +74,15 @@ namespace HaXeContext
         {
             if (haxeProcess == null || IsRunning()) return;
             haxeProcess.Start();
-            if (!listening)
-            {
-                listening = true;
-                haxeProcess.BeginOutputReadLine();
-                haxeProcess.BeginErrorReadLine();
-                haxeProcess.OutputDataReceived += new DataReceivedEventHandler(haxeProcess_OutputDataReceived);
-                haxeProcess.ErrorDataReceived += new DataReceivedEventHandler(haxeProcess_ErrorDataReceived);
-            }
+            if (listening) return;
+            listening = true;
+            haxeProcess.BeginOutputReadLine();
+            haxeProcess.BeginErrorReadLine();
+            haxeProcess.OutputDataReceived += haxeProcess_OutputDataReceived;
+            haxeProcess.ErrorDataReceived += haxeProcess_ErrorDataReceived;
         }
 
-        void haxeProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        static void haxeProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             TraceManager.AddAsync(e.Data, 2);
         }
@@ -89,12 +90,10 @@ namespace HaXeContext
         void haxeProcess_ErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data == null) return;
-            if (Regex.IsMatch(e.Data, "Error.*--wait"))
-            {
-                if (!failure && FallbackNeeded != null) 
-                    FallbackNeeded(true);
-                failure = true;
-            }
+            if (!Regex.IsMatch(e.Data, "Error.*--wait")) return;
+            if (!failure && FallbackNeeded != null) 
+                FallbackNeeded(true);
+            failure = true;
         }
 
         public void Stop()
