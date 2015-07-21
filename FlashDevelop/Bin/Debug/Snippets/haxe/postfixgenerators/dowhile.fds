@@ -1,3 +1,0 @@
-do $(CSLB){
-	$(EntryPoint)
-} while ($(Boolean));

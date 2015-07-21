@@ -1,3 +1,0 @@
-for (var key:$(CollectionKeyType) in $(Collection|Hash)) $(CSLB){
-    $(EntryPoint)
-}

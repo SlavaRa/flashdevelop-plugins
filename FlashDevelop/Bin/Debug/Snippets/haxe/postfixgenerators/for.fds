@@ -1,7 +1,0 @@
-for ($(ItmUniqueVar) in 0...$(Collection).length) $(CSLB){
-	$(EntryPoint)
-}
-#pcc:Number
-for ($(ItmUniqueVar) in 0...$(Number)) $(CSLB){
-	$(EntryPoint)
-}

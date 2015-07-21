@@ -1,1 +1,0 @@
-var $(EntryPoint)$(Name)<<:$(Type)>> = $(Member);
