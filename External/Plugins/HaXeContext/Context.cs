@@ -832,11 +832,7 @@ namespace HaXeContext
                 if (aPath.IsValid && !aPath.Updating)
                 {
                     string path;
-                    try
-                    {
-                        path = Path.Combine(aPath.Path, fileName);
-                    }
-                    catch { continue; }
+                    path = aPath.Path + dirSeparator + fileName;
 
                     FileModel file = null;
                     // cached file
@@ -1226,6 +1222,10 @@ namespace HaXeContext
                 case HaxeCompleteStatus.MEMBERS:
                     if (result.Members != null && result.Members.Count > 0)
                         ASComplete.DotContextResolved(hc.Sci, hc.Expr, result.Members, hc.AutoHide);
+                    break;
+
+                case HaxeCompleteStatus.TYPE:
+                    // eg. Int
                     break;
             }
         }
