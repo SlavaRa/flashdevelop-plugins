@@ -121,7 +121,7 @@ namespace BasicCompletion
         /// <summary>
         /// Handles the incoming events
         /// </summary>
-        public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority prority)
+        public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority priority)
         {
             ITabbedDocument document = PluginBase.MainForm.CurrentDocument;
             if (document == null || !document.IsEditable) return;
@@ -420,7 +420,6 @@ namespace BasicCompletion
         /// </summary>
         private void SciControlCharAdded(ScintillaControl sci, Int32 value)
         {
-            ITabbedDocument doc = DocumentManager.FindDocument(sci);
             if (this.isSupported && !settingObject.DisableAutoCompletion)
             {
                 String lang = sci.ConfigurationLanguage;
@@ -452,7 +451,6 @@ namespace BasicCompletion
         /// </summary>
         private void SciControlTextChanged(ScintillaControl sci, Int32 position, Int32 length, Int32 linesAdded)
         {
-            ITabbedDocument doc = DocumentManager.FindDocument(sci);
             if (this.isSupported)
             {
                 this.updateTimer.Stop();

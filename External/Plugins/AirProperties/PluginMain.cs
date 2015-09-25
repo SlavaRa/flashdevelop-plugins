@@ -121,7 +121,7 @@ namespace AirProperties
         /// <summary>
         /// Handles the incoming events
         /// </summary>
-        public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority prority)
+        public void HandleEvent(Object sender, NotifyEvent e, HandlingPriority priority)
         {
             switch (e.Type)
             {
@@ -206,7 +206,6 @@ namespace AirProperties
         public void UpdateMenuItems()
         {
             Boolean pluginActive = false;
-            ToolStrip mainToolStrip = (ToolStrip)PluginBase.MainForm.ToolStrip;
             if (this.pluginMenuItem == null || this.pmMenuButton == null) return;
             if (PluginBase.CurrentProject != null)
             {
