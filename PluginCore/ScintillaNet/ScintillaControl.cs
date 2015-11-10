@@ -5551,6 +5551,10 @@ namespace ScintillaNet
                 highlightDelay.SynchronizingObject = this as Control;
             }
             else highlightDelay.Stop();
+            if (highlightDelay.Interval != PluginBase.MainForm.Settings.HighlightMatchingWordsDelay)
+            {
+                highlightDelay.Interval = PluginBase.MainForm.Settings.HighlightMatchingWordsDelay;
+            }
             highlightDelay.Start();
         }
         void highlightDelay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -5566,7 +5570,7 @@ namespace ScintillaNet
         {
             if (TextLength == 0 || TextLength > 64 * 1024) return;
             Language language = Configuration.GetLanguage(ConfigurationLanguage);
-            Int32 color = language.editorstyle.SelectionBackgroundColor;
+            Int32 color = language.editorstyle.HighlightWordBackColor;
             String word = GetWordFromPosition(CurrentPos);
             if (String.IsNullOrEmpty(word)) return;
             if (this.PositionIsOnComment(CurrentPos))
