@@ -91,6 +91,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntPanel", "External\Plugin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AntPanel.Tests", "External\Plugins\AntPanel\AntPanel.Tests\AntPanel.Tests.csproj", "{A39ACB42-C8A5-4EDF-BE65-A11C87F8FC38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExplorerPanel", "External\Plugins\FlexUnitPanel\UnitTestPlugin\TestExplorerPanel.csproj", "{73292672-4278-4CDE-BBF1-A497A35B040B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -403,6 +405,14 @@ Global
 		{A39ACB42-C8A5-4EDF-BE65-A11C87F8FC38}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A39ACB42-C8A5-4EDF-BE65-A11C87F8FC38}.Release|x86.ActiveCfg = Release|Any CPU
 		{A39ACB42-C8A5-4EDF-BE65-A11C87F8FC38}.Release|x86.Build.0 = Release|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Debug|x86.Build.0 = Debug|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Release|x86.ActiveCfg = Release|Any CPU
+		{73292672-4278-4CDE-BBF1-A497A35B040B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
