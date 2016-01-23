@@ -95,6 +95,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestExplorerPanel", "Extern
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreviousEdit", "External\Plugins\PreviousEdit\PreviousEdit\PreviousEdit.csproj", "{12FA6A8C-FDEB-41AC-BCB8-9269106105C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PreviousEdit.Tests", "External\Plugins\PreviousEdit\PreviousEdit.Tests\PreviousEdit.Tests.csproj", "{004BDE64-D586-4F69-8655-8294F283B2EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -423,6 +425,14 @@ Global
 		{12FA6A8C-FDEB-41AC-BCB8-9269106105C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{12FA6A8C-FDEB-41AC-BCB8-9269106105C8}.Release|x86.ActiveCfg = Release|x86
 		{12FA6A8C-FDEB-41AC-BCB8-9269106105C8}.Release|x86.Build.0 = Release|x86
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Debug|x86.Build.0 = Debug|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Release|x86.ActiveCfg = Release|Any CPU
+		{004BDE64-D586-4F69-8655-8294F283B2EB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
