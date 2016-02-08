@@ -12,7 +12,7 @@ set PATH=%PATH%;C:\Program Files\7-Zip\
 if %errorlevel% neq 0 goto :error
 
 :: Build the PluginCore
-msbuild PluginCore\PluginCore.csproj /p:Configuration=Release /p:Platform=x86 /t:Rebuild
+msbuild PluginCore\PluginCore.csproj /p:Configuration=Release /p:Platform="AnyCPU" /t:Rebuild
 
 :: Check for build errors
 if %errorlevel% neq 0 goto :error
@@ -20,7 +20,9 @@ if %errorlevel% neq 0 goto :error
 :: Extract version from HEAD
 call SetVersion.bat
 
-:: Build the solution
+:: Build the solutions
+msbuild FlashDevelop.sln /p:Configuration=Release /p:Platform="Any CPU" /t:Rebuild
+ping -n 5 127.0.0.1 > nul
 msbuild FlashDevelop.sln /p:Configuration=Release /p:Platform=x86 /t:Rebuild
 
 :: Check for build errors
@@ -44,7 +46,6 @@ if %errorlevel% neq 0 goto :error
 git clean -f -x -d FlashDevelop\Bin\Debug
 
 :: Remove bad files
-del FlashDevelop\Bin\Debug\FlashDevelop.exe.config
 del FlashDevelop\Bin\Debug\StartPage\images\*.* /Q
 for /d %%G in ("FlashDevelop\Bin\Debug\Projects\*ActionScript 3*") do rd /s /q "%%~G"
 
@@ -52,7 +53,7 @@ for /d %%G in ("FlashDevelop\Bin\Debug\Projects\*ActionScript 3*") do rd /s /q "
 xcopy Distros\HaxeDevelop /s /e /y
 
 :: Build the PluginCore
-msbuild PluginCore\PluginCore.csproj /p:Configuration=Release /p:Platform=x86 /t:Rebuild
+msbuild PluginCore\PluginCore.csproj /p:Configuration=Release /p:Platform="AnyCPU" /t:Rebuild
 
 :: Check for build errors
 if %errorlevel% neq 0 goto :error
@@ -60,8 +61,19 @@ if %errorlevel% neq 0 goto :error
 :: Extract version from HEAD
 call SetVersion.bat
 
-:: Build the solution
+:: Build the solutions
+msbuild FlashDevelop.sln /p:Configuration=Release /p:Platform="Any CPU" /t:Rebuild
+ping -n 5 127.0.0.1 > nul
 msbuild FlashDevelop.sln /p:Configuration=Release /p:Platform=x86 /t:Rebuild
+
+:: Check for build errors
+if %errorlevel% neq 0 goto :error
+
+:: Rename binaries
+ren FlashDevelop\Bin\Debug\FlashDevelop.exe HaxeDevelop.exe
+ren FlashDevelop\Bin\Debug\FlashDevelopx64.exe HaxeDevelopx64.exe
+ren FlashDevelop\Bin\Debug\FlashDevelop.exe.config HaxeDevelop.exe.config
+ren FlashDevelop\Bin\Debug\FlashDevelopx64.exe.config HaxeDevelopx64.exe.config
 
 :: Check for build errors
 if %errorlevel% neq 0 goto :error
