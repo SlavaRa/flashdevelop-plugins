@@ -10,7 +10,7 @@
 ;--------------------------------
 
 ; Define version info
-!define VERSION "5.1.0"
+!define VERSION "5.1.1"
 
 ; Installer details
 VIAddVersionKey "CompanyName" "${DIST_COMP}"
@@ -550,8 +550,8 @@ Section "un.${DIST_NAME}" UninstMain
 	Delete "$INSTDIR\Exceptions.log"
 	Delete "$INSTDIR\${DIST_NAME}.exe"
 	Delete "$INSTDIR\${DIST_NAME}.exe.config"
-	Delete "$INSTDIR\${DIST_NAME}x64.exe"
-	Delete "$INSTDIR\${DIST_NAME}x64.exe.config"
+	Delete "$INSTDIR\${DIST_NAME}64.exe"
+	Delete "$INSTDIR\${DIST_NAME}64.exe.config"
 	Delete "$INSTDIR\PluginCore.dll"
 	Delete "$INSTDIR\SciLexer.dll"
 	Delete "$INSTDIR\SciLexer64.dll"
