@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Entries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<Entry>
-		<Id>haxe3setup2</Id>
+		<Id>haxe3setup</Id>
 		<Name>Haxe + Neko</Name>
 		<Version>3.2.1</Version>
 		<Build>1</Build>
@@ -14,38 +14,6 @@
 		<Info>http://www.haxe.org</Info>
 		<Urls>
 			<Url>http://haxe.org/website-content/downloads/3.2.1/downloads/haxe-3.2.1-win.exe</Url>
-		</Urls>
-	</Entry>
-	<Entry>
-		<Id>haxe3setup1</Id>
-		<Name>Haxe + Neko</Name>
-		<Version>3.2.0</Version>
-		<Build>1</Build>
-		<Desc>Haxe 3 and Neko virtual machine installer</Desc>
-		<Group>Compilers</Group>
-		<Bundles>
-			<Bundle>Haxe</Bundle>
-		</Bundles>
-		<Type>Executable</Type>
-		<Info>http://www.haxe.org</Info>
-		<Urls>
-			<Url>http://haxe.org/file/haxe-3.2.0-win.exe</Url>
-		</Urls>
-	</Entry>
-	<Entry>
-		<Id>haxe3setup2</Id>
-		<Name>Haxe + Neko</Name>
-		<Version>3.1.3</Version>
-		<Build>1</Build>
-		<Desc>Haxe 3 and Neko virtual machine installer</Desc>
-		<Group>Compilers</Group>
-		<Bundles>
-			<Bundle>Haxe</Bundle>
-		</Bundles>
-		<Type>Executable</Type>
-		<Info>http://www.haxe.org</Info>
-		<Urls>
-			<Url>http://haxe.org/file/haxe-3.1.3-win.exe</Url>
 		</Urls>
 	</Entry>
 	<Entry>
@@ -157,19 +125,6 @@
 		</Urls>
 	</Entry>
 	<Entry>
-		<Id>flashns</Id>
-		<Name>Flash Player (NPAPI)</Name>
-		<Version>20.0.0</Version>
-		<Build>235</Build>
-		<Desc>Debug Flash Player plugin for Firefox - NPAPI</Desc>
-		<Group>Runtimes</Group>
-		<Type>Executable</Type>
-		<Info>http://www.adobe.com/support/flashplayer/downloads.html</Info>
-		<Urls>
-			<Url>http://download.macromedia.com/pub/flashplayer/updaters/20/flashplayer_20_plugin_debug.exe</Url>
-		</Urls>
-	</Entry>
-	<Entry>
 		<Id>flashie</Id>
 		<Name>Flash Player (AX)</Name>
 		<Version>20.0.0</Version>
@@ -183,11 +138,24 @@
 		</Urls>
 	</Entry>
 	<Entry>
+		<Id>flashnpapi</Id>
+		<Name>Flash Player (NPAPI)</Name>
+		<Version>20.0.0</Version>
+		<Build>235</Build>
+		<Desc>Debug Flash Player plugin for Firefox - NPAPI</Desc>
+		<Group>Runtimes</Group>
+		<Type>Executable</Type>
+		<Info>http://www.adobe.com/support/flashplayer/downloads.html</Info>
+		<Urls>
+			<Url>http://download.macromedia.com/pub/flashplayer/updaters/20/flashplayer_20_plugin_debug.exe</Url>
+		</Urls>
+	</Entry>
+	<Entry>
 		<Id>flashppapi</Id>
 		<Name>Flash Player (PPAPI)</Name>
 		<Version>20.0.0</Version>
 		<Build>228</Build>
-		<Desc>Debug Flash Player plugin for Opera and Chromium based applications – PPAPI</Desc>
+		<Desc>Debug Flash Player plugin for Opera and Chromium based applications - PPAPI</Desc>
 		<Group>Runtimes</Group>
 		<Type>Executable</Type>
 		<Info>http://www.adobe.com/support/flashplayer/downloads.html</Info>
@@ -198,7 +166,7 @@
 	<Entry>
 		<Id>torgit</Id>
 		<Name>TortoiseGit (x86)</Name>
-		<Version>1.8.16</Version>
+		<Version>2.0.0</Version>
 		<Build>1</Build>
 		<Desc>Git client 32-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -208,13 +176,13 @@
 		<Type>Executable</Type>
 		<Info>https://code.google.com/p/tortoisegit/</Info>
 		<Urls>
-			<Url>https://download.tortoisegit.org/tgit/1.8.16.0/TortoiseGit-1.8.16.0-32bit.msi</Url>
+			<Url>https://download.tortoisegit.org/tgit/2.0.0.0/TortoiseGit-2.0.0.0-32bit.msi</Url>
 		</Urls>
 	</Entry>
 	<Entry>
 		<Id>torgit64</Id>
 		<Name>TortoiseGit (x64)</Name>
-		<Version>1.8.16</Version>
+		<Version>2.0.0</Version>
 		<Build>1</Build>
 		<Desc>Git client 64-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -224,13 +192,13 @@
 		<Type>Executable</Type>
 		<Info>https://code.google.com/p/tortoisegit/</Info>
 		<Urls>
-			<Url>https://download.tortoisegit.org/tgit/1.8.16.0/TortoiseGit-1.8.16.0-64bit.msi</Url>
+			<Url>https://download.tortoisegit.org/tgit/2.0.0.0/TortoiseGit-2.0.0.0-64bit.msi</Url>
 		</Urls>
 	</Entry>
 	<Entry>
 		<Id>git4win</Id>
 		<Name>Git For Windows (x86)</Name>
-		<Version>2.6.3</Version>
+		<Version>2.7.2</Version>
 		<Build>1</Build>
 		<Desc>Git command line client 32-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -240,13 +208,13 @@
 		<Type>Executable</Type>
 		<Info>http://msysgit.github.io/</Info>
 		<Urls>
-			<Url>https://github.com/git-for-windows/git/releases/download/v2.6.3.windows.1/Git-2.6.3-32-bit.exe</Url>
+			<Url>https://github.com/git-for-windows/git/releases/download/v2.7.2.windows.1/Git-2.7.2-32-bit.exe</Url>
 		</Urls>
 	</Entry>
-    <Entry>
-		<Id>git4win</Id>
+	<Entry>
+		<Id>git4win64</Id>
 		<Name>Git For Windows (x64)</Name>
-		<Version>2.6.3</Version>
+		<Version>2.7.2</Version>
 		<Build>1</Build>
 		<Desc>Git command line client 64-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -256,13 +224,13 @@
 		<Type>Executable</Type>
 		<Info>http://msysgit.github.io/</Info>
 		<Urls>
-			<Url>https://github.com/git-for-windows/git/releases/download/v2.6.3.windows.1/Git-2.6.3-64-bit.exe</Url>
-        </Urls>
+			<Url>https://github.com/git-for-windows/git/releases/download/v2.7.2.windows.1/Git-2.7.2-64-bit.exe</Url>
+		</Urls>
 	</Entry>
 	<Entry>
 		<Id>torsvn</Id>
 		<Name>TortoiseSVN (x86)</Name>
-		<Version>1.9.2</Version>
+		<Version>1.9.3</Version>
 		<Build>1</Build>
 		<Desc>Subversion client 32-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -272,13 +240,13 @@
 		<Type>Executable</Type>
 		<Info>http://tortoisesvn.net/</Info>
 		<Urls>
-			<Url>https://sourceforge.net/projects/tortoisesvn/files/1.9.2/Application/TortoiseSVN-1.9.2.26806-win32-svn-1.9.2.msi</Url>
+			<Url>http://downloads.sourceforge.net/project/tortoisesvn/1.9.3/Application/TortoiseSVN-1.9.3.27038-win32-svn-1.9.3.msi</Url>
 		</Urls>
 	</Entry>
 	<Entry>
 		<Id>torsvn64</Id>
 		<Name>TortoiseSVN (x64)</Name>
-		<Version>1.9.2</Version>
+		<Version>1.9.3</Version>
 		<Build>1</Build>
 		<Desc>Subversion client 64-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -288,13 +256,13 @@
 		<Type>Executable</Type>
 		<Info>http://tortoisesvn.net/</Info>
 		<Urls>
-			<Url>https://sourceforge.net/projects/tortoisesvn/files/1.9.2/Application/TortoiseSVN-1.9.2.26806-x64-svn-1.9.2.msi</Url>
+			<Url>https://sourceforge.net/projects/tortoisesvn/files/1.9.3/Application/TortoiseSVN-1.9.3.27038-x64-svn-1.9.3.msi</Url>
 		</Urls>
 	</Entry>
 	<Entry>
 		<Id>sliksvn</Id>
 		<Name>SlikSVN Client (x86)</Name>
-		<Version>1.9.2</Version>
+		<Version>1.9.3</Version>
 		<Build>1</Build>
 		<Desc>Subversion command line client 32-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -304,13 +272,13 @@
 		<Type>Executable</Type>
 		<Info>http://www.sliksvn.com/en/download/</Info>
 		<Urls>
-			<Url>https://sliksvn.com/pub/Slik-Subversion-1.9.2-win32.msi</Url>
+			<Url>https://sliksvn.com/pub/Slik-Subversion-1.9.3-win32.msi</Url>
 		</Urls>
 	</Entry>
-    <Entry>
-		<Id>sliksvn</Id>
+	<Entry>
+		<Id>sliksvn64</Id>
 		<Name>SlikSVN Client (x64)</Name>
-		<Version>1.9.2</Version>
+		<Version>1.9.3</Version>
 		<Build>1</Build>
 		<Desc>Subversion command line client 64-bit installer</Desc>
 		<Group>Source Control</Group>
@@ -320,7 +288,39 @@
 		<Type>Executable</Type>
 		<Info>http://www.sliksvn.com/en/download/</Info>
 		<Urls>
-			<Url>https://sliksvn.com/pub/Slik-Subversion-1.9.2-x64.msi</Url>
+			<Url>https://sliksvn.com/pub/Slik-Subversion-1.9.3-x64.msi</Url>
+		</Urls>
+	</Entry>
+	<Entry>
+		<Id>torhg</Id>
+		<Name>TortoiseHg (x86)</Name>
+		<Version>3.7.1</Version>
+		<Build>1</Build>
+		<Desc>TortoiseHg (including Mercurial) 32-bit installer</Desc>
+		<Group>Source Control</Group>
+		<Bundles>
+			<Bundle>HG</Bundle>
+		</Bundles>
+		<Type>Executable</Type>
+		<Info>https://www.mercurial-scm.org/downloads</Info>
+		<Urls>
+			<Url>http://bitbucket.org/tortoisehg/files/downloads/tortoisehg-3.7.1-x86.msi</Url>
+		</Urls>
+	</Entry>
+	<Entry>
+		<Id>torhg64</Id>
+		<Name>TortoiseHg (x64)</Name>
+		<Version>3.7.1</Version>
+		<Build>1</Build>
+		<Desc>TortoiseHg (including Mercurial) 64-bit installer</Desc>
+		<Group>Source Control</Group>
+		<Bundles>
+			<Bundle>HG</Bundle>
+		</Bundles>
+		<Type>Executable</Type>
+		<Info>https://www.mercurial-scm.org/downloads</Info>
+		<Urls>
+			<Url>http://bitbucket.org/tortoisehg/files/downloads/tortoisehg-3.7.1-x64.msi</Url>
 		</Urls>
 	</Entry>
 	<Entry>
@@ -329,7 +329,7 @@
 		<Version>1.01</Version>
 		<Build>1</Build>
 		<Desc>Adds archived legacy AS2 templates</Desc>
-		<Group>Extensions</Group>
+		<Group>Templates</Group>
 		<Info>http://www.flashdevelop.org/wikidocs/</Info>
 		<Urls>
 			<Url>https://raw.github.com/fdorg/flashdevelop/development/External/Extensions/AS2Templates/AS2Templates-1.01.fdz</Url>
@@ -342,7 +342,7 @@
 		<Version>1.00</Version>
 		<Build>1</Build>
 		<Desc>Adds archived legacy AS3 templates</Desc>
-		<Group>Extensions</Group>
+		<Group>Templates</Group>
 		<Info>http://www.flashdevelop.org/wikidocs/</Info>
 		<Urls>
 			<Url>https://raw.github.com/fdorg/flashdevelop/development/External/Extensions/AS3Templates/AS3Templates-1.00.fdz</Url>
@@ -350,6 +350,21 @@
 	</Entry>
 	HD5-->
 	<!--FD5
+	<Entry>
+		<Id>flixeltmpl</Id>
+		<Name>HaxeFlixel Template</Name>
+		<Version>2.0.1</Version>
+		<Build>1</Build>
+		<Desc>Adds the default HaxeFlixel template</Desc>
+		<Group>Templates</Group>
+		<Bundles>
+			<Bundle>HaxeFlixel</Bundle>
+		</Bundles>
+		<Info>http://haxeflixel.com/</Info>
+		<Urls>
+			<Url>https://raw.github.com/HaxeFlixel/flixel-templates/8732ce62810d10d86c31b5aa5cc22ee2f1730c7b/pregenerated/FlxProject.fdz</Url>
+		</Urls>
+	</Entry>
 	<Entry>
 		<Id>colorbox</Id>
 		<Name>ColorBox</Name>
@@ -509,14 +524,14 @@
 	<Entry>
 		<Id>solarizedfulltheme</Id>
 		<Name>Solarized Full Theme</Name>
-		<Version>1.0</Version>
+		<Version>1.1</Version>
 		<Build>1</Build>
-		<Checksum>0EFDD1753EB7C4D42607B52BF296624B</Checksum>
+		<Checksum>ecf7273e7b72a1d57a84247345a0b667</Checksum>
 		<Desc>Adds Solarized light and dark ui themes and syntax themes, based on Solarized by Ethan Schoonover.</Desc>
 		<Group>Themes</Group>
 		<Info>http://www.flashdevelop.org/community/viewtopic.php?f=20&amp;t=12399</Info>
 		<Urls>
-			<Url>https://github.com/gene-pavlovsky/flashdevelop-colors-solarized/raw/v1.0/dist/SolarizedThemes.fdz</Url>
+			<Url>https://github.com/gene-pavlovsky/flashdevelop-colors-solarized/raw/v1.1/dist/SolarizedThemes.fdz</Url>
 		</Urls>
 	</Entry>
 	<Entry>
@@ -532,5 +547,49 @@
 			<Url>https://github.com/mikicho/findandreplaceex/releases/download/v1.1/Find.ReplaceEx.fdz</Url>
 		</Urls>
 	</Entry>
+	<Entry>
+		<Id>wakatime</Id>
+		<Name>WakaTime</Name>
+		<Version>1.1.1</Version>
+		<Build>1</Build>
+		<Checksum>4128CB05D1C6F05928BDD93F62953959</Checksum>
+		<Desc>Adds WakaTime time tracking functionality</Desc>
+		<Group>Plugins</Group>
+		<Info>https://github.com/CamWiseOwl/flashdevelop-wakatime/</Info>
+		<Urls>
+			<Url>https://github.com/CamWiseOwl/flashdevelop-wakatime/releases/download/1.1.1/WakaTime.fdz</Url>
+		</Urls>
+	</Entry>
 	FD5-->
+	<!--Haxelib
+	<Entry>
+		<Id>cmdopenfl</Id>
+		<Name>OpenFL Installer Script</Name>
+		<Version>1.0.0</Version>
+		<Build>1</Build>
+		<Desc>Installs OpenFL and its dependencies with Haxelib.</Desc>
+		<Group>Haxelib</Group>
+		<Type>Executable</Type>
+		<Info>https://github.com/fdorg/flashdevelop/tree/development/External/Scripts</Info>
+		<Urls>
+			<Url>https://raw.github.com/fdorg/flashdevelop/development/External/Scripts/InstallOpenFL.cmd</Url>
+		</Urls>
+	</Entry>
+	<Entry>
+		<Id>cmdflixel</Id>
+		<Name>HaxeFlixel Installer Script</Name>
+		<Version>1.0.0</Version>
+		<Build>1</Build>
+		<Desc>Installs HaxeFlixel and its dependencies with Haxelib.</Desc>
+		<Group>Haxelib</Group>
+		<Type>Executable</Type>
+		<Bundles>
+			<Bundle>HaxeFlixel</Bundle>
+		</Bundles>
+		<Info>https://github.com/fdorg/flashdevelop/tree/development/External/Scripts</Info>
+		<Urls>
+			<Url>https://raw.github.com/fdorg/flashdevelop/development/External/Scripts/InstallHaxeFlixel.cmd</Url>
+		</Urls>
+	</Entry>
+	Haxelib-->
 </Entries>

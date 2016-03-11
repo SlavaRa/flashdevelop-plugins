@@ -707,6 +707,8 @@ namespace FlashDevelop
                     File.Delete(appman);
                     this.refreshConfig = true;
                 }
+                // Load platform data from user files
+                PlatformData.Load(Path.Combine(PathHelper.SettingDir, "Platforms"));
                 // Load current theme for applying later
                 String currentTheme = Path.Combine(PathHelper.ThemesDir, "CURRENT");
                 if (File.Exists(currentTheme)) ThemeManager.LoadTheme(currentTheme);
@@ -726,14 +728,22 @@ namespace FlashDevelop
         }
 
         /// <summary>
-        /// When AppMan is closed, it notifies of changes. Forward notifications.
+        /// When AppMan installs something it notifies of changes. Forward notifications.
         /// </summary>
         private void AppManUpdate(Object sender, FileSystemEventArgs e)
         {
             try
             {
+
                 NotifyEvent ne = new NotifyEvent(EventType.AppChanges);
-                EventManager.DispatchEvent(this, ne);
+                EventManager.DispatchEvent(this, ne); // Notify plugins...
+                String appMan = Path.Combine(PathHelper.BaseDir, ".appman");
+                String contents = File.ReadAllText(appMan);
+                if (contents == "restart")
+                {
+                    String message = TextHelper.GetString("Info.RequiresRestart");
+                    TraceManager.Add(message);
+                }
             }
             catch {} // No errors...
         }
@@ -790,7 +800,6 @@ namespace FlashDevelop
                 this.appSettings = (SettingObject)obj;
             }
             SettingObject.EnsureValidity(this.appSettings);
-            PlatformData.Load(Path.Combine(PathHelper.SettingDir, "Platforms"));
             FileStateManager.RemoveOldStateFiles();
         }
 
@@ -1562,7 +1571,7 @@ namespace FlashDevelop
                     else if (keyData == (Keys.Control | Keys.X)) return false;
                     else if (keyData == (Keys.Control | Keys.A)) return false;
                     else if (keyData == (Keys.Control | Keys.Z)) return false;
-                    else if (keyData == (Keys.Control | Keys.V)) return false;
+                    else if (keyData == (Keys.Control | Keys.Y)) return false;
                 }
                 /**
                 * Process special key combinations and allow "chaining" of 
@@ -2061,22 +2070,17 @@ namespace FlashDevelop
         {
             CloseAllDocuments(exceptCurrent, false);
         }
-
         public void CloseAllDocuments(Boolean exceptCurrent, Boolean exceptOtherPanes)
         {
             ITabbedDocument current = this.CurrentDocument;
             DockPane currentPane = (current == null) ? null : current.DockHandler.PanelPane;
             this.closeAllCanceled = false; this.closingAll = true;
             var documents = new List<ITabbedDocument>(Documents);
-
             foreach (var document in documents)
             {
                 Boolean close = true;
-                if (exceptCurrent && document == current)
-                    close = false;
-                if (exceptOtherPanes && document.DockHandler.PanelPane != currentPane)
-                    close = false;
-                
+                if (exceptCurrent && document == current) close = false;
+                if (exceptOtherPanes && document.DockHandler.PanelPane != currentPane) close = false;
                 if (close) document.Close();
             }
             this.closingAll = false;
@@ -3017,7 +3021,7 @@ namespace FlashDevelop
                     {
                         zipLog += "Restart required.\r\n";
                         if (!silentInstall) finish += "\n" + restart;
-                        else TraceManager.AddAsync(finish + "\r\n" + restart);
+                        else TraceManager.AddAsync(restart);
                     }
                     String logFile = Path.Combine(PathHelper.BaseDir, "Extensions.log");
                     File.AppendAllText(logFile, zipLog + "Done.\r\n\r\n", Encoding.UTF8);
@@ -3102,7 +3106,7 @@ namespace FlashDevelop
                     {
                         zipLog += "Restart required.\r\n";                        
                         if (!silentRemove) finish += "\n" + restart;
-                        else TraceManager.AddAsync(finish + "\r\n" + restart);
+                        else TraceManager.AddAsync(restart);
                     }
                     String logFile = Path.Combine(PathHelper.BaseDir, "Extensions.log");
                     File.AppendAllText(logFile, zipLog + "Done.\r\n\r\n", Encoding.UTF8);
