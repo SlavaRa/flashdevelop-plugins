@@ -20,4 +20,5 @@ using System.Resources;
 [assembly: NeutralResourcesLanguage("en-US", UltimateResourceFallbackLocation.MainAssembly)]
 [assembly: InternalsVisibleTo("PluginCore")]
 [assembly: InternalsVisibleTo("ASCompletion.Tests")]
+[assembly: InternalsVisibleTo("CodeRefactor.Tests")]
 [assembly: InternalsVisibleTo("PostfixCodeCompletion.Tests")]
