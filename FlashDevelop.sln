@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25402.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.25302.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlashDevelop", "FlashDevelop\FlashDevelop.csproj", "{EFD07485-9A64-4EEC-94E7-ACBD4DA5CA93}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -400,7 +400,6 @@ Global
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Debug|x86.Build.0 = Debug|Any CPU
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C5E9EAE-6168-473D-8FDE-E1C7C84FE04B}.Release|x86.ActiveCfg = Release|Any CPU
