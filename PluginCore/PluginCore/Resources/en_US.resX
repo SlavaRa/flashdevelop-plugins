@@ -3931,7 +3931,7 @@ Please note that with injection enabled, you will not be able to use many projec
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Info.ShortcutEditInfo" xml:space="preserve">
-    <value>Shortcuts can be edited by selecting an item and pressing valid menu item shortcut keys.</value>
+    <value>Shortcuts can be edited by double-clicking an item and pressing valid menu item shortcut keys.</value>
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Label.Command" xml:space="preserve">
@@ -3951,7 +3951,7 @@ Please note that with injection enabled, you will not be able to use many projec
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Label.RevertAllToDefault" xml:space="preserve">
-    <value>Revert All To &amp;Default</value>
+    <value>Revert &amp;All To Default</value>
     <comment>Added after 4.7.0</comment>
   </data>
   <data name="FlashDevelop.Label.Shortcut" xml:space="preserve">
@@ -6036,6 +6036,42 @@ Custom locales must be an extension of a default locale, e.g. en-US.</value>
   </data>
   <data name="FlashDevelop.Description.MaxRecentFiles" xml:space="preserve">
     <value>The number of recent files to remember in the recent files drop-down.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Description.UseInlineRenaming" xml:space="preserve">
+    <value>Whether to use inline editing for renaming processes.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeComments" xml:space="preserve">
+    <value>Include comments</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeStrings" xml:space="preserve">
+    <value>Include strings</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.PreviewChanges" xml:space="preserve">
+    <value>Preview changes</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.PressNewShortcut" xml:space="preserve">
+    <value>Press new shortcut keys:</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutUndefined" xml:space="preserve">
+    <value>The key combination ({0}) is not defined.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutWaiting" xml:space="preserve">
+    <value>({0}) was pressed. Waiting for a second key input...</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Label.Reset" xml:space="preserve">
+    <value>&amp;Reset</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Description.DisableExtendedShortcutKeys" xml:space="preserve">
+    <value>Disable extended shortcut keys. Extended shortcut keys allow two key combinations to be input as one shortcut.</value>
     <comment>Added after 5.1.1</comment>
   </data>
 </root>

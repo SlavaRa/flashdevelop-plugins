@@ -2158,9 +2158,9 @@
     <value>所有文档被关闭时显示首页，而不是未标题文档。</value>
   </data>
   <data name="StartPage.Description.ShowStartPageOnStartup" xml:space="preserve">
-    <value>当启动 FlashDevelop 时，首页应当显示: 
-总是显示首页 - FlashDevelop 将不还原一个会话, 但始终显示首页. 
-不恢复会话时显示首页 - 如果 FlashDevelop 不恢复会话时，将显示首页. 
+    <value>当启动 FlashDevelop 时，首页应当显示:
+总是显示首页 - FlashDevelop 将不还原一个会话, 但始终显示首页.
+不恢复会话时显示首页 - 如果 FlashDevelop 不恢复会话时，将显示首页.
 从不显示首页 - 启动 FlashDevelop 时将不显示首页.</value>
   </data>
   <data name="StartPage.Description.UseCustomRssFeed" xml:space="preserve">
@@ -3943,7 +3943,7 @@
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Label.RevertAllToDefault" xml:space="preserve">
-    <value>Revert All To &amp;Default</value>
+    <value>Revert &amp;All To Default</value>
     <comment>Added after 4.7.0</comment>
   </data>
   <data name="FlashDevelop.Label.Shortcut" xml:space="preserve">
@@ -6032,6 +6032,42 @@
   </data>
   <data name="FlashDevelop.Description.MaxRecentFiles" xml:space="preserve">
     <value>The number of recent files to remember in the recent files drop-down.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Description.UseInlineRenaming" xml:space="preserve">
+    <value>Whether to use inline editing for renaming processes.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeComments" xml:space="preserve">
+    <value>Include comments</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeStrings" xml:space="preserve">
+    <value>Include strings</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.PreviewChanges" xml:space="preserve">
+    <value>Preview changes</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.PressNewShortcut" xml:space="preserve">
+    <value>Press new shortcut keys:</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutUndefined" xml:space="preserve">
+    <value>The key combination ({0}) is not defined.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutWaiting" xml:space="preserve">
+    <value>({0}) was pressed. Waiting for a second key input...</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Label.Reset" xml:space="preserve">
+    <value>&amp;Reset</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Description.DisableExtendedShortcutKeys" xml:space="preserve">
+    <value>Disable extended shortcut keys. Extended shortcut keys allow two key combinations to be input as one shortcut.</value>
     <comment>Added after 5.1.1</comment>
   </data>
 </root>

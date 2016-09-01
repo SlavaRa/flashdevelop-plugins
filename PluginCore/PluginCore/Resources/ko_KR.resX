@@ -3932,7 +3932,7 @@ Never - 시작 페이지는 프로그램 시작시 열리지 않습니다.</valu
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Info.ShortcutEditInfo" xml:space="preserve">
-    <value>항목을 선택하고 유효한 단축키를 눌러 단축키를 편집 할 수 있습니다.</value>
+    <value>항목을 더블클릭하고 유효한 단축키를 눌러 단축키를 편집 할 수 있습니다.</value>
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Label.Command" xml:space="preserve">
@@ -3952,7 +3952,7 @@ Never - 시작 페이지는 프로그램 시작시 열리지 않습니다.</valu
     <comment>Added after 3.3.1</comment>
   </data>
   <data name="FlashDevelop.Label.RevertAllToDefault" xml:space="preserve">
-    <value>모두 기본값으로 되돌리기 (&amp;D)</value>
+    <value>모두 기본값으로 되돌리기 (&amp;A)</value>
     <comment>Added after 4.7.0</comment>
   </data>
   <data name="FlashDevelop.Label.Shortcut" xml:space="preserve">
@@ -6039,6 +6039,42 @@ Complete: 현재 파일, 프로젝트 파일 및 수동 새로 고침.</value>
   </data>
   <data name="FlashDevelop.Description.MaxRecentFiles" xml:space="preserve">
     <value>최근 파일 목록의 최대 길이.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Description.UseInlineRenaming" xml:space="preserve">
+    <value>이름 바꾸기를 사용할때 인라인 편집을 사용합니다.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeComments" xml:space="preserve">
+    <value>주석 포함</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.IncludeStrings" xml:space="preserve">
+    <value>문자열 포함</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="CodeRefactor.Label.PreviewChanges" xml:space="preserve">
+    <value>미리보기</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.PressNewShortcut" xml:space="preserve">
+    <value>새 단축키를 누르세요:</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutUndefined" xml:space="preserve">
+    <value>단축키 조합 ({0})이 정의되어 있지 않습니다.</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Info.ShortcutWaiting" xml:space="preserve">
+    <value>({0}) 키를 눌렀습니다. 두번째 키 입력을 기다리는 중...</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Label.Reset" xml:space="preserve">
+    <value>초기화 (&amp;R)</value>
+    <comment>Added after 5.1.1</comment>
+  </data>
+  <data name="FlashDevelop.Description.DisableExtendedShortcutKeys" xml:space="preserve">
+    <value>확장 된 단축키를 사용하지 않도록 설정합니다. 확장 된 단축키를 사용하면 두 개의 키 조합을 하나의 단축키로 입력 할 수 있습니다.</value>
     <comment>Added after 5.1.1</comment>
   </data>
 </root>
