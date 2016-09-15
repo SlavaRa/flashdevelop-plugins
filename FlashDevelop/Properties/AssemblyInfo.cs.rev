@@ -21,3 +21,4 @@ using System.Resources;
 [assembly: InternalsVisibleTo("PluginCore")]
 [assembly: InternalsVisibleTo("ASCompletion.Tests")]
 [assembly: InternalsVisibleTo("CodeRefactor.Tests")]
+[assembly: InternalsVisibleTo("PostfixCodeCompletion.Tests")]
