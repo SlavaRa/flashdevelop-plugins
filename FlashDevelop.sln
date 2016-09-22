@@ -103,6 +103,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HXMLGenerator", "External\P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchWithGoogle", "External\Plugins\SearchWithGoogle\SearchWithGoogle\SearchWithGoogle.csproj", "{72EC4500-294A-4F24-97AA-7761FB1DEF6F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappinessMaker", "External\Plugins\HappinesMaker\HappinessMaker.csproj", "{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -451,6 +453,14 @@ Global
 		{72EC4500-294A-4F24-97AA-7761FB1DEF6F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{72EC4500-294A-4F24-97AA-7761FB1DEF6F}.Release|x86.ActiveCfg = Release|Any CPU
 		{72EC4500-294A-4F24-97AA-7761FB1DEF6F}.Release|x86.Build.0 = Release|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Debug|x86.Build.0 = Debug|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Release|x86.ActiveCfg = Release|Any CPU
+		{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
