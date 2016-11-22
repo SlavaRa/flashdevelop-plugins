@@ -105,7 +105,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SearchWithGoogle", "Externa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HappinessMaker", "External\Plugins\HappinesMaker\HappinessMaker.csproj", "{8954DD81-B5FC-4D8B-AE02-7047AA01A5A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCP696_1", "External\Plugins\SCP696_1\SCP696_1\SCP696_1.csproj", "{BCB06FE2-90ED-4876-9052-68F299C6B6B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCP696_2", "External\Plugins\SCP696_1\SCP696_1\SCP696_2.csproj", "{BCB06FE2-90ED-4876-9052-68F299C6B6B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
