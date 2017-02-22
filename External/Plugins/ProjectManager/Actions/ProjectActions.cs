@@ -16,6 +16,7 @@ using ProjectManager.Controls.TreeView;
 using ProjectManager.Helpers;
 using ProjectManager.Projects;
 using ProjectManager.Projects.AS3;
+using ProjectManager.Projects.Haxe;
 
 namespace ProjectManager.Actions
 {
@@ -97,19 +98,28 @@ namespace ProjectManager.Actions
             dialog.Filter = TextHelper.GetString("Info.ImportProjectFilter");
             if (dialog.ShowDialog() == DialogResult.OK && File.Exists(dialog.FileName))
             {
-                string fbProject = dialog.FileName;
+                string fileName = dialog.FileName;
                 string currentDirectory = Directory.GetCurrentDirectory();
 
                 try
                 {
-                    if (FileInspector.IsFlexBuilderPackagedProject(fbProject))
+                    if (FileInspector.IsHxml(Path.GetExtension(fileName).ToLower()))
                     {
-                        fbProject = ExtractPackagedProject(fbProject);
+                        var project = HaxeProject.Load(fileName);
+                        var path = Path.GetDirectoryName(project.ProjectPath);
+                        var name = Path.GetFileNameWithoutExtension(project.OutputPath);
+                        var newPath = Path.Combine(path, name + ".hx3proj");
+                        PatchProject(project);
+                        project.SaveAs(newPath);
+                        return newPath;
                     }
-
-                    if (FileInspector.IsFlexBuilderProject(fbProject))
+                    if (FileInspector.IsFlexBuilderPackagedProject(fileName))
                     {
-                        AS3Project imported = AS3Project.Load(fbProject);
+                        fileName = ExtractPackagedProject(fileName);
+                    }
+                    if (FileInspector.IsFlexBuilderProject(fileName))
+                    {
+                        AS3Project imported = AS3Project.Load(fileName);
                         string path = Path.GetDirectoryName(imported.ProjectPath);
                         string name = Path.GetFileNameWithoutExtension(imported.OutputPath);
                         string newPath = Path.Combine(path, name + ".as3proj");
@@ -119,8 +129,7 @@ namespace ProjectManager.Actions
 
                         return newPath;
                     }
-                    else
-                        ErrorManager.ShowInfo(TextHelper.GetString("Info.NotValidFlashBuilderProject"));
+                    ErrorManager.ShowInfo(TextHelper.GetString("Info.NotValidFlashBuilderProject"));
                 }
                 catch (Exception exception)
                 {
