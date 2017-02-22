@@ -3164,67 +3164,47 @@ namespace ASCompletion.Completion
             }
 
             line = ReplaceAllStringContents(line);
-
-            ASResult resolve = null;
-            int pos = -1; 
-            string word = null;
-            ClassModel type = null;
-
-            if (line[line.Length - 1] == ')')
+            var bracesRemoved = false;
+            int pos = -1;
+            if (line.Last() == ')')
             {
-                pos = -1;
-                int lastIndex = 0;
-                int bracesBalance = 0;
-                while (true)
+                var bracesCount = 1;
+                var position = startPos + line.Length - 1;
+                while (position-- > 0)
                 {
-                    int pos1 = line.IndexOf('(', lastIndex);
-                    int pos2 = line.IndexOf(')', lastIndex);
-                    if (pos1 != -1 && pos2 != -1)
+                    if (sci.PositionIsOnComment(position)) continue;
+                    var c = (char)sci.CharAt(position);
+                    if (c == ')') bracesCount++;
+                    else if (c == '(')
                     {
-                        lastIndex = Math.Min(pos1, pos2);
-                    }
-                    else if (pos1 != -1 || pos2 != -1)
-                    {
-                        lastIndex = Math.Max(pos1, pos2);
-                    }
-                    else
-                    {
+                        bracesCount--;
+                        if (bracesCount > 0) continue;
+                        pos = position;
+                        var lineFromPosition = sci.LineFromPosition(pos);
+                        startPos = sci.PositionFromLine(lineFromPosition);
+                        line = sci.GetLine(lineFromPosition);
+                        line = line.Substring(0, pos - startPos);
+                        bracesRemoved = true;
                         break;
                     }
-                    if (lastIndex == pos1)
-                    {
-                        bracesBalance++;
-                        if (bracesBalance == 1)
-                        {
-                            pos = lastIndex;
-                        }
-                    }
-                    else if (lastIndex == pos2)
-                    {
-                        bracesBalance--;
-                    }
-                    lastIndex++;
                 }
             }
-            else
-            {
-                pos = line.Length;
-            }
+            else pos = startPos + line.Length - 1;
+            IASContext ctx = inClass.InFile.Context;
+            ASResult resolve = null;
+            string word = null;
             if (pos != -1)
             {
-                line = line.Substring(0, pos);
-                pos += startPos;
-                pos -= line.Length - line.TrimEnd().Length + 1;
                 pos = sci.WordEndPosition(pos, true);
                 var c = line.TrimEnd().Last();
                 resolve = ASComplete.GetExpressionType(sci, c == ']' ? pos + 1 : pos);
-                if (resolve.IsNull()) resolve.Type = null;// resolve = null;
+                if (resolve.IsNull()) resolve.Type = null;
+                else if (sci.ConfigurationLanguage == "as3" && resolve?.Type.Name == "Function" && !bracesRemoved)
+                    resolve.Member = null;
                 word = sci.GetWordFromPosition(pos);
             }
-
-            IASContext ctx = inClass.InFile.Context;
             m = Regex.Match(line, "new\\s+([\\w\\d.<>,_$-]+)+(<[^]]+>)|(<[^]]+>)", RegexOptions.IgnoreCase);
-
+            ClassModel type = null;
             if (m.Success)
             {
                 string m1 = m.Groups[1].Value;
@@ -3237,7 +3217,7 @@ namespace ASCompletion.Completion
                     cname = String.Concat(m1, m2);
                 
                 type = ctx.ResolveType(cname, inClass.InFile);
-                if (!type.IsVoid()) resolve.Type = type;// resolve = null;
+                if (!type.IsVoid() && resolve != null) resolve.Type = type;// resolve = null;
             }
             else
             {

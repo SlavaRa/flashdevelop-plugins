@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -91,11 +92,14 @@ namespace ProjectManager.Actions
             }
         }
 
-        public string ImportProject()
+        public string ImportProject() => ImportProject(null);
+
+        internal string ImportProject(string importFrom)
         {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Title = TextHelper.GetString("Title.ImportProject");
             dialog.Filter = TextHelper.GetString("Info.ImportProjectFilter");
+            if (importFrom == "hxml") dialog.FilterIndex = 3;
             if (dialog.ShowDialog() == DialogResult.OK && File.Exists(dialog.FileName))
             {
                 string fileName = dialog.FileName;
@@ -108,8 +112,9 @@ namespace ProjectManager.Actions
                         var project = HaxeProject.Load(fileName);
                         var path = Path.GetDirectoryName(project.ProjectPath);
                         var name = Path.GetFileNameWithoutExtension(project.OutputPath);
-                        var newPath = Path.Combine(path, name + ".hx3proj");
+                        var newPath = Path.Combine(path, $"{name}.hxproj");
                         PatchProject(project);
+                        PatchHxmlProject(project);
                         project.SaveAs(newPath);
                         return newPath;
                     }
@@ -139,6 +144,18 @@ namespace ProjectManager.Actions
                 }
             }
             return null;
+        }
+
+        static void PatchHxmlProject(Project project)
+        {
+            project.OutputPath = Path.GetFileName(project.ProjectPath);
+            project.MovieOptions.Background = string.Empty;
+            project.MovieOptions.BackgroundColor = Color.Empty;
+            project.MovieOptions.Platform = "hxml";
+            project.MovieOptions.Fps = 0;
+            project.MovieOptions.Width = 0;
+            project.MovieOptions.Height = 0;
+            project.MovieOptions.Version = string.Empty;
         }
 
         private void PatchFbProject(AS3Project project)

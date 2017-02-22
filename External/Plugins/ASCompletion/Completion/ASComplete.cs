@@ -2415,7 +2415,7 @@ namespace ASCompletion.Completion
         static public void HandleAllClassesCompletion(ScintillaControl Sci, string tail, bool classesOnly, bool showClassVars)
         {
             List<ICompletionListItem> list = GetAllClasses(Sci, classesOnly, showClassVars);
-
+            list.Sort(new CompletionItemCaseSensitiveImportComparer());
             CompletionList.Show(list, false, tail);
         }
 
@@ -3528,7 +3528,7 @@ namespace ASCompletion.Completion
                 // string literals only allowed in sub-expressions
                 else
                 {
-                    if (braceCount == 0) // not expected: something's wrong
+                    if (braceCount == 0 && !hadDot) // not expected: something's wrong
                     {
                         expression.Separator = ';';
                         break;
@@ -4807,6 +4807,14 @@ namespace ASCompletion.Completion
         public int Compare(ICompletionListItem a, ICompletionListItem b)
         {
             return a.Label.CompareTo(b.Label);
+        }
+    }
+
+    public class CompletionItemCaseSensitiveImportComparer : IComparer<ICompletionListItem>
+    {
+        public int Compare(ICompletionListItem x, ICompletionListItem y)
+        {
+            return CaseSensitiveImportComparer.CompareImports(x.Label, y.Label);
         }
     }
     #endregion
