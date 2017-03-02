@@ -1804,11 +1804,14 @@ namespace ASCompletion.Model
                         line = line0;
                         return null;
                     }
-                    else if (c == '(') parCount++;
+                    else if (c == '(')
+                    {
+                        parCount++;
+                        isComplex = true;
+                    }
                     else if (c == ')')
                     {
                         parCount--;
-                        isComplex = true;
                         if (parCount <= 0) break;
                     }
                     else if (c <= 32 && parCount <= 0)
@@ -1846,7 +1849,7 @@ namespace ASCompletion.Model
             model.FullPackage = model.Module == "" ? model.Package
                 : (model.Package == "" ? model.Module : model.Package + '.' + model.Module);
             if (model.FileName.Length == 0 || model.FileName.EndsWithOrdinal("_cache")) return;
-            if (model.PrivateSectionIndex == 0) model.PrivateSectionIndex = line;
+            if (model.PrivateSectionIndex == 0) model.PrivateSectionIndex = line + 1;
             if (version == 2)
             {
                 string className = model.GetPublicClass().Name;
