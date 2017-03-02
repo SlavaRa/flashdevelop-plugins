@@ -109,7 +109,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SCP696_2", "External\Plugin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginCore.Tests", "Tests\PluginCore\PluginCore.Tests\PluginCore.Tests.csproj", "{F44D3125-12E8-4143-B250-84C5D89D253C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForForeachConverter", "External\Plugins\ForForeachConvert\ForForeachConverter\ForForeachConverter.csproj", "{D489FF4C-F61A-4184-BEC7-0F2686728ED2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForForeachConverter", "External\Plugins\ForForeachConverter\ForForeachConverter\ForForeachConverter.csproj", "{D489FF4C-F61A-4184-BEC7-0F2686728ED2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
