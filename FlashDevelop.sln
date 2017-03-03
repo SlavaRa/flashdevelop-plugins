@@ -111,6 +111,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginCore.Tests", "Tests\P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForForeachConverter", "External\Plugins\ForForeachConvert\ForForeachConverter\ForForeachConverter.csproj", "{D489FF4C-F61A-4184-BEC7-0F2686728ED2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForForeachConverter.Tests", "External\Plugins\ForForeachConvert\ForForeachConvert.Tests\ForForeachConverter.Tests.csproj", "{C41F6870-EDAF-4175-8C64-A67259C9BB35}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -824,6 +826,21 @@ Global
 		{D489FF4C-F61A-4184-BEC7-0F2686728ED2}.Release+Tests|Any CPU.Build.0 = Release|Any CPU
 		{D489FF4C-F61A-4184-BEC7-0F2686728ED2}.Release+Tests|x86.ActiveCfg = Release|Any CPU
 		{D489FF4C-F61A-4184-BEC7-0F2686728ED2}.Release+Tests|x86.Build.0 = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug+Tests|Any CPU.ActiveCfg = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug+Tests|Any CPU.Build.0 = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug+Tests|x86.ActiveCfg = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Debug+Tests|x86.Build.0 = Debug|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release|x86.ActiveCfg = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release|x86.Build.0 = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release+Tests|Any CPU.ActiveCfg = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release+Tests|Any CPU.Build.0 = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release+Tests|x86.ActiveCfg = Release|Any CPU
+		{C41F6870-EDAF-4175-8C64-A67259C9BB35}.Release+Tests|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
