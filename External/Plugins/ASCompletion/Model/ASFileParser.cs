@@ -698,7 +698,7 @@ namespace ASCompletion.Model
                             }
                         }
                         // end of string?
-                        else if (isInString)
+                        else
                         {
                             if (c1 == 10 || c1 == 13) { if (!haXe) inString = 0; }
                             else if ((c1 == '"' && inString == 1) || (c1 == '\'' && inString == 2))
@@ -963,7 +963,7 @@ namespace ASCompletion.Model
 
 
                 /* PARSE DECLARATION VALUES/TYPES */
-
+                
                 if (inValue)
                 {
                     bool stopParser = false;
@@ -1230,7 +1230,7 @@ namespace ASCompletion.Model
                             else if (c1 == '<' && features.hasGenerics)
                             {
                                 if (!inValue && i > 2 && length > 1 && i < len - 3
-                                    && char.IsLetterOrDigit(ba[i - 3]) && (char.IsLetter(ba[i]) || (haXe && ba[i] == '{'))
+                                    && (char.IsLetterOrDigit(ba[i - 3]) || ba[i - 3] == '_') && (char.IsLetter(ba[i]) || (haXe && (ba[i] == '{' || ba[i] == '(' || ba[i] <= ' ' || ba[i] == '?')))
                                     && (char.IsLetter(buffer[0]) || buffer[0] == '_' || inType && buffer[0] == '('))
                                 {
                                     if (curMember == null)
@@ -1302,7 +1302,11 @@ namespace ASCompletion.Model
                                 paramParCount++;
                                 addChar = true;
                             }
-                            else if (haXe && c1 == '{' && length > 1 && ((buffer[length - 2] == '-' && buffer[length - 1] == '>') || buffer[length - 1] == ':' || buffer[length - 1] == '('))
+                            else if (haXe && c1 == '{' && length > 1
+                                    && (buffer[length - 2] == '-' && buffer[length - 1] == '>'
+                                        || buffer[length - 1] == ':'
+                                        || buffer[length - 1] == '('
+                                        || buffer[length - 1] == '?'))
                             {
                                 paramBraceCount++;
                                 inAnonType = true;
@@ -1315,6 +1319,12 @@ namespace ASCompletion.Model
                                 addChar = true;
                             }
                             else if (haXe && inAnonType && paramBraceCount > 0) addChar = true;
+                            else if (haXe && c1 == '?')
+                            {
+                                hadWS = false;
+                                evalToken = 0;
+                                addChar = true;
+                            }
                             else if (paramBraceCount == 0)
                             {
                                 evalToken = 2;
@@ -1544,7 +1554,7 @@ namespace ASCompletion.Model
                             }
 
                             // an Enum value with parameters
-                            else if (inEnum && curToken != null)
+                            else if (inEnum)
                             {
                                 context = FlagType.Variable;
                                 inParams = true;
@@ -1557,7 +1567,7 @@ namespace ASCompletion.Model
                             }
 
                             // a TypeDef method with parameters
-                            else if (inTypedef && curToken != null)
+                            else if (inTypedef)
                             {
                                 context = FlagType.Variable;
                                 inParams = true;
