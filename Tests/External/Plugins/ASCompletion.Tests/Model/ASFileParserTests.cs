@@ -1256,10 +1256,46 @@ namespace ASCompletion.Model
                         .Returns(new[] {"(String->{a:Array<{x:Int, y:Int}>})->Void"});
                     yield return new TestCaseData("function foo(p:String->({a:Array<{x:Int, y:Int}>}->Void)) {}")
                         .Returns(new[] {"String->({a:Array<{x:Int, y:Int}>}->Void)"});
+                    yield return new TestCaseData("function foo(p:Array<(Int->Void)->Int->Void>) {}")
+                        .Returns(new[] {"Array<(Int->Void)->Int->Void>"});
+                    yield return new TestCaseData("function foo(p : Array < ( Int -> Void ) -> Int -> Void > ) {}")
+                        .Returns(new[] {"Array<(Int->Void)->Int->Void>"});
                     yield return new TestCaseData("function foo(p:Map<String, {x:Int, y:Int}>) {}")
                         .Returns(new[] {"Map<String, {x:Int, y:Int}>"});
                     yield return new TestCaseData("function foo(p:Map<{x:Int, y:Int}, String>) {}")
                         .Returns(new[] {"Map<{x:Int, y:Int}, String>"});
+                    yield return new TestCaseData("function foo ( p : Map <{ x : Int , y : Int } , String> ) {}")
+                        .Returns(new[] {"Map<{x:Int, y:Int}, String>"});
+                    yield return new TestCaseData("function foo(p:Map< {x:Int, y:Int}, String > ) {}")
+                        .Returns(new[] {"Map<{x:Int, y:Int}, String>"});
+                    yield return new TestCaseData("function foo ( p : Map < { x : Int , y : Int } , String > ) {}")
+                        .Returns(new[] {"Map<{x:Int, y:Int}, String>"});
+                    yield return new TestCaseData("function foo ( p : Map < { c : Int -> { x : Int , y : Int } } , String > ) {}")
+                        .Returns(new[] {"Map<{c:Int->{x:Int, y:Int}}, String>"});
+                    yield return new TestCaseData("function foo(p:Map<{c:Int->{x:Int,y:Int}},String>) {}")
+                        .Returns(new[] {"Map<{c:Int->{x:Int, y:Int}}, String>"});
+                    yield return new TestCaseData("function foo(p:Map<{c:Int->Point/*{x:Int,y:Int}*/},String>) {}")
+                        .Returns(new[] {"Map<{c:Int->Point}, String>"});
+                    yield return new TestCaseData("function foo(p:Map<{c:Int->/*{x:Int,y:Int}*/Point},String>) {}")
+                        .Returns(new[] {"Map<{c:Int->Point}, String>"});
+                    yield return new TestCaseData("function foo(p:Map<Int, Array<Map<Int, String>>>) {}")
+                        .Returns(new[] {"Map<Int, Array<Map<Int, String>>>"});
+                    yield return new TestCaseData("function foo(p:{}) {}")
+                        .Returns(new[] {"{}"});
+                    yield return new TestCaseData("function foo(p:String->?{x:Int, y:Int}->Void) {}")
+                        .Returns(new[] {"String->?{x:Int, y:Int}->Void"});
+                    yield return new TestCaseData("function foo(p:?String->?{x:Int, y:Int}->Void) {}")
+                        .Returns(new[] {"?String->?{x:Int, y:Int}->Void"});
+                    yield return new TestCaseData("function foo(p:?String->?{?x:Int, ?y:Int}->Void) {}")
+                        .Returns(new[] {"?String->?{?x:Int, ?y:Int}->Void"});
+                    yield return new TestCaseData("function foo ( p : ?String -> ?{ ?x : Int , ?y : Int} -> Void ) {}")
+                        .Returns(new[] {"?String->?{?x:Int, ?y:Int}->Void"});
+                    yield return new TestCaseData("function foo(p:Array<?(Int->Void)->Int->Void>) {}")
+                        .Returns(new[] {"Array<?(Int->Void)->Int->Void>"});
+                    yield return new TestCaseData("function foo(p:Array<?(?Int->Void)->?Int->Void>) {}")
+                        .Returns(new[] {"Array<?(?Int->Void)->?Int->Void>"});
+                    yield return new TestCaseData("function foo ( p : Array < ? ( ?Int -> Void ) -> ?Int -> Void > ) {}")
+                        .Returns(new[] {"Array<?(?Int->Void)->?Int->Void>"});
                 }
             }
 
@@ -1978,6 +2014,30 @@ namespace ASCompletion.Model
                     Assert.AreEqual(" Dummy data to make sure this method keeps values at the end of the parsing ", memberModel.Comments);
                     Assert.AreEqual("dummy", memberModel.MetaDatas[0].Name);
                 }
+            }
+
+            static IEnumerable<TestCaseData> ParseClassTestCases
+            {
+                get
+                {
+                    yield return new TestCaseData("class Foo {}").Returns(new ClassModel {Name = "Foo", InFile = FileModel.Ignore });
+                    yield return new TestCaseData("class Foo<T> {}").Returns(new ClassModel {Name = "Foo", InFile = FileModel.Ignore });
+                    yield return new TestCaseData("private class Database_r<T> {}").Returns(new ClassModel {Name = "Database_r", InFile = FileModel.Ignore});
+                    yield return new TestCaseData("private class Database_<T> {}").Returns(new ClassModel {Name = "Database_", InFile = FileModel.Ignore});
+                }
+            }
+
+            [Test, TestCaseSource(nameof(ParseClassTestCases))]
+            public ClassModel ParseClass(string sourceText)
+            {
+                var plugin = Substitute.For<PluginMain>();
+                plugin.MenuItems.Returns(new List<ToolStripItem>());
+                var context = new HaXeContext.Context(new HaXeContext.HaXeSettings());
+                Context.ASContext.GlobalInit(plugin);
+                Context.ASContext.Context = context;
+                var model = context.GetCodeModel(sourceText);
+                var result = model.Classes.First();
+                return result;
             }
         }
     }
