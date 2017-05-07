@@ -948,6 +948,7 @@ namespace FlashDevelop
                 LayoutManager.BuildLayoutSystems(FileNameHelper.LayoutData);
                 ShortcutManager.LoadCustomShortcuts();
                 ArgumentDialog.LoadCustomArguments();
+                ClipboardManager.Initialize(this);
                 PluginCore.Controls.UITools.Init();
             }
             catch (Exception ex)
@@ -1263,6 +1264,7 @@ namespace FlashDevelop
                 SessionManager.SaveSession(file, session);
                 ShortcutManager.SaveCustomShortcuts();
                 ArgumentDialog.SaveCustomArguments();
+                ClipboardManager.Dispose();
                 PluginServices.DisposePlugins();
                 this.KillProcess();
                 this.SaveAllSettings();
@@ -1416,7 +1418,7 @@ namespace FlashDevelop
                             e.Cancel = true;
                         }
                     }
-                    else if (document.IsModified) document.Save();
+                    else document.Save();
                 }
                 else if (result == DialogResult.Cancel)
                 {
@@ -1714,9 +1716,9 @@ namespace FlashDevelop
         }
 
         /// <summary>
-        /// Notifies the plugins for the FileSave event
+        /// Notifies the plugins for the FileSave event and includes the given reason for the save.
         /// </summary>
-        public void OnFileSave(ITabbedDocument document, String oldFile)
+        public void OnFileSave(ITabbedDocument document, string oldFile, string reason)
         {
             if (oldFile != null)
             {
@@ -1728,10 +1730,30 @@ namespace FlashDevelop
             }
             this.OnUpdateMainFormDialogTitle();
             if (document.IsEditable) document.SciControl.MarkerDeleteAll(2);
-            TextEvent save = new TextEvent(EventType.FileSave, document.FileName);
+            TextDataEvent save = new TextDataEvent(EventType.FileSave, document.FileName, reason);
             EventManager.DispatchEvent(this, save);
             ButtonManager.UpdateFlaggedButtons();
             TabTextManager.UpdateTabTexts();
+        }
+
+        /// <summary>
+        /// Notifies the plugins for the FileSave event
+        /// </summary>
+        public void OnFileSave(ITabbedDocument document, String oldFile)
+        {
+            OnFileSave(document, oldFile, null);
+        }
+
+        /// <summary>
+        /// Handles clipboard updates.
+        /// </summary>
+        protected override void WndProc(ref Message m)
+        {
+            if (ClipboardManager.HandleWndProc(ref m))
+            {
+                ClipboardHistoryDialog.UpdateHistory();
+            }
+            base.WndProc(ref m);
         }
 
         #endregion
@@ -2180,6 +2202,7 @@ namespace FlashDevelop
             this.toolStrip.Visible = this.isFullScreen ? false : this.appSettings.ViewToolBar;
             ButtonManager.UpdateFlaggedButtons();
             TabTextManager.UpdateTabTexts();
+            ClipboardManager.ApplySettings();
         }
 
         /// <summary>
@@ -2513,6 +2536,18 @@ namespace FlashDevelop
         }
 
         /// <summary>
+        /// Paste text using <see cref="ClipboardHistoryDialog"/>.
+        /// </summary>
+        public void PasteHistory(object sender, EventArgs e)
+        {
+            ClipboardTextData data;
+            if (ClipboardHistoryDialog.Show(out data))
+            {
+                Globals.SciControl.ReplaceSel(data.Text);
+            }
+        }
+
+        /// <summary>
         /// Pastes lines at the correct indent level
         /// </summary>
         public void SmartPaste(Object sender, System.EventArgs e)
@@ -2601,6 +2636,9 @@ namespace FlashDevelop
         {
             try
             {
+                var button = (ToolStripItem)sender;
+                var reason = ((ItemData)button.Tag).Tag as string;
+                
                 if (this.CurrentDocument.IsUntitled)
                 {
                     this.saveFileDialog.FileName = this.CurrentDocument.FileName;
@@ -2617,7 +2655,7 @@ namespace FlashDevelop
                 }
                 else if (this.CurrentDocument.IsModified)
                 {
-                    this.CurrentDocument.Save();
+                    this.CurrentDocument.Save(this.CurrentDocument.FileName, reason);
                 }
             }
             catch (Exception ex)
