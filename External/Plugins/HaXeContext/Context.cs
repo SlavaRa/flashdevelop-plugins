@@ -144,6 +144,7 @@ namespace HaXeContext
 
             currentSDK = PathHelper.ResolvePath(hxsettings.GetDefaultSDK().Path) ?? "";
             initSettings.CompletionModeChanged += OnCompletionModeChange;
+            initSettings.UseGenericsShortNotationChanged += UseGenericsShortNotationChange;
             //OnCompletionModeChange(); // defered to first use
 
             haxelibsCache = new Dictionary<string, List<string>>();
@@ -249,8 +250,17 @@ namespace HaXeContext
             currentEnv = sdkPath;
 
             LoadMetadata();
-            if (GetCurrentSDKVersion().IsGreaterThanOrEquals(new SemVer("3.3.0"))) features.SpecialPostfixOperators = new[] {'!'};
+
+            if (GetCurrentSDKVersion() >= "3.3.0") features.SpecialPostfixOperators = new[] {'!'};
             else features.SpecialPostfixOperators = new char[0];
+
+            UseGenericsShortNotationChange();
+        }
+
+        private void UseGenericsShortNotationChange()
+        {
+            // We may want to create 2 different feature flags for this, but atm it's enough this way
+            features.HasGenericsShortNotation = GetCurrentSDKVersion() >= "3" && hxsettings.UseGenericsShortNotation;
         }
 
         public void LoadMetadata()
@@ -1177,7 +1187,7 @@ namespace HaXeContext
         internal HaxeComplete GetHaxeComplete(ScintillaControl sci, ASExpr expression, bool autoHide, HaxeCompilerService compilerService)
         {
             var sdkVersion = GetCurrentSDKVersion();
-            if (hxsettings.CompletionMode == HaxeCompletionModeEnum.CompletionServer && sdkVersion.IsGreaterThanOrEquals(new SemVer("3.3.0")))
+            if (hxsettings.CompletionMode == HaxeCompletionModeEnum.CompletionServer && sdkVersion >= "3.3.0")
                 return new HaxeComplete330(sci, expression, autoHide, completionModeHandler, compilerService, sdkVersion);
             return new HaxeComplete(sci, expression, autoHide, completionModeHandler, compilerService, sdkVersion);
         }
@@ -1409,7 +1419,7 @@ namespace HaXeContext
 
         public override bool HandleGotoDeclaration(ScintillaControl sci, ASExpr expression)
         {
-            if (hxsettings.CompletionMode == HaxeCompletionModeEnum.FlashDevelop || GetCurrentSDKVersion().IsOlderThan(new SemVer("3.2.0")))
+            if (hxsettings.CompletionMode == HaxeCompletionModeEnum.FlashDevelop || GetCurrentSDKVersion() < "3.2.0")
                 return false;
 
             var hc = GetHaxeComplete(sci, expression, false, HaxeCompilerService.POSITION);
@@ -1668,8 +1678,26 @@ namespace HaXeContext
             RunCMD(command);
             return true;
         }
+
         #endregion
 
+        #region haxelib
+
+        internal void InstallHaxelib(Dictionary<string, string> nameToVersion)
+        {
+            var haxePath = PathHelper.ResolvePath(GetCompilerPath());
+            if (!Directory.Exists(haxePath) && !File.Exists(haxePath))
+            {
+                ErrorManager.ShowInfo(TextHelper.GetString("Info.InvalidHaXePath"));
+                return;
+            }
+            if (Path.GetExtension(haxePath) == string.Empty) haxePath = Path.Combine(haxePath, "haxelib.exe");
+            nameToVersion.Select(it => $"{haxePath};install {it.Key} {it.Value}")
+                     .ToList()
+                     .ForEach(it => MainForm.CallCommand("RunProcessCaptured", it));
+        }
+
+        #endregion
     }
 
     class HaxeCompletionCache: CompletionCache
