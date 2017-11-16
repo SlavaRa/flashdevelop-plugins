@@ -228,6 +228,16 @@ namespace FlashDevelop.Settings
             set { this.keepCaretCentered = value; }
         }
 
+        [DefaultValue(false)]
+        [DisplayName("End At Last Line")]
+        [LocalizedCategory("FlashDevelop.Category.Editor")]
+        [LocalizedDescription("FlashDevelop.Description.EndAtLastLine")]
+        public Boolean EndAtLastLine
+        {
+            get { return this.endAtLastLine; }
+            set { this.endAtLastLine = value; }
+        }
+
         [DefaultValue(true)]
         [DisplayName("Disable Highlight Guide")]
         [LocalizedCategory("FlashDevelop.Category.Editor")]
@@ -989,7 +999,7 @@ namespace FlashDevelop.Settings
         {
             get
             {
-                String value = Globals.MainForm.GetThemeValue("ComboBox.FlatStyle", "Popup");
+                String value = Globals.MainForm.GetThemeValue("ComboBox.FlatStyle", "Standard");
                 switch (value)
                 {
                     case "Flat": return FlatStyle.Flat;

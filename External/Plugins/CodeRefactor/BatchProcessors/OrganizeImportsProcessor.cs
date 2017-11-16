@@ -16,15 +16,22 @@ namespace CodeRefactor.BatchProcessors
 
         public string Text => TextHelper.GetStringWithoutMnemonics("Label.OrganizeImports");
 
-        public void Process(string[] files)
+        public void Process(IEnumerable<string> files)
         {
             foreach (var file in files)
             {
                 var document = PluginBase.MainForm.OpenEditableDocument(file) as ITabbedDocument;
-                var command = (OrganizeImports)CommandFactoryProvider.GetFactory(document).CreateOrganizeImportsCommand();
+                var command = (OrganizeImports)CommandFactoryProvider.GetFactory(document)?.CreateOrganizeImportsCommand();
+                if (command == null) continue;
                 command.SciControl = document.SciControl;
                 command.Execute();
             }
+        }
+
+        public void ProcessProject(IProject project)
+        {
+            var files = BatchProcessManager.GetAllProjectFiles(project);
+            Process(files);
         }
     }
 }

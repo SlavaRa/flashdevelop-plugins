@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using LintingHelper.Managers;
 using PluginCore.Localization;
+using ProjectManager;
 
 namespace LintingHelper
 {
@@ -21,7 +22,6 @@ namespace LintingHelper
         private string pluginAuth = "FlashDevelop Team";
         private Settings settingObject;
         private string settingFilename;
-        internal static RichToolTip Tip;
 
         public int Api
         {
@@ -95,45 +95,11 @@ namespace LintingHelper
         private void AddEventHandlers()
         {
             BatchProcessManager.AddBatchProcessor(new BatchProcess.LintProcessor());
-            EventManager.AddEventHandler(this, EventType.FileOpen | EventType.FileSave | EventType.FileModify);
-
-            UITools.Manager.OnMouseHover += Scintilla_OnMouseHover;
-            UITools.Manager.OnMouseHoverEnd += Scintilla_OnMouseHoverEnd;
-        }
-
-        private void Scintilla_OnMouseHover(ScintillaNet.ScintillaControl sender, int position)
-        {
-            var results = Managers.LintingManager.Cache.GetResultsFromPosition(DocumentManager.FindDocument(sender), position);
-            if (results == null)
-                return;
-
-            var desc = "";
-
-            foreach (var result in results)
-            {
-                if (!string.IsNullOrEmpty(result.Description))
-                    desc += "\r\n" + result.Description;
-            }
-
-            if (desc != string.Empty)
-            {
-                desc = desc.Remove(0, 2); //remove \r\n
-                Tip.ShowAtMouseLocation(desc);
-
-                //move simpleTip up to not overlap linting tip
-                UITools.Tip.Location = new Point(UITools.Tip.Location.X, UITools.Tip.Location.Y - Tip.Size.Height);
-            }
-        }
-
-        private void Scintilla_OnMouseHoverEnd(ScintillaNet.ScintillaControl sender, int position)
-        {
-            Tip.Hide();
+            EventManager.AddEventHandler(this, EventType.FileOpen | EventType.FileSave | EventType.FileModify | EventType.Command);
         }
 
         private void InitBasics()
         {
-            Tip = new RichToolTip(PluginBase.MainForm);
-
             string dataPath = Path.Combine(PathHelper.DataDir, nameof(LintingHelper));
             if (!Directory.Exists(dataPath)) Directory.CreateDirectory(dataPath);
             this.settingFilename = Path.Combine(dataPath, $"{nameof(Settings)}.fdb");
@@ -166,7 +132,8 @@ namespace LintingHelper
                     var fileOpen = (TextEvent) e;
                     if (this.settingObject.LintOnOpen)
                     {
-                        Managers.LintingManager.LintFiles(new string[] { fileOpen.Value });
+                        LintingManager.Cache.RemoveDocument(fileOpen.Value);
+                        LintingManager.LintFiles(new[] { fileOpen.Value });
                     }
                     break;
                 case EventType.FileSave:
@@ -175,12 +142,29 @@ namespace LintingHelper
                     if (reason != "HaxeComplete" && this.settingObject.LintOnSave)
                     {
                         var fileSave = (TextEvent) e;
-                        Managers.LintingManager.LintFiles(new string[] { fileSave.Value });
+                        LintingManager.Cache.RemoveDocument(fileSave.Value);
+                        LintingManager.LintFiles(new[] { fileSave.Value });
                     }
                     break;
+                case EventType.Command:
+                    var ev = (DataEvent) e;
+                    if (ev.Action == ProjectManagerEvents.BuildComplete || ev.Action == ProjectManagerEvents.Project)
+                    {
+                        LintingManager.Cache.RemoveAll();
+                        LintingManager.UpdateLinterPanel();
+                        if (ev.Action == ProjectManagerEvents.Project)
+                        {
+                            foreach (var doc in PluginBase.MainForm.Documents)
+                            {
+                                if (!doc.IsUntitled && doc.SciControl != null)
+                                    LintingManager.LintDocument(doc);
+                            }
+                        }
+                    }
+                    
+                    break;
                 case EventType.FileModify:
-                    var file = ((TextEvent)e).Value;
-                    Managers.LintingManager.UnLintDocument(DocumentManager.FindDocument(file));
+                    LintingManager.UnLintFile(((TextEvent)e).Value);
                     break;
             }
         }
