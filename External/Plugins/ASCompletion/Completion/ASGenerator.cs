@@ -51,7 +51,7 @@ namespace ASCompletion.Completion
         {
             ContextFeatures features = ASContext.Context.Features;
             if (features.overrideKey != null && word == features.overrideKey)
-                return HandleOverrideCompletion(Sci, autoHide);
+                return HandleOverrideCompletion(autoHide);
             return false;
         }
 
@@ -294,7 +294,8 @@ namespace ASCompletion.Completion
                 {
                     var returnType = GetStatementReturnType(Sci, found.inClass, Sci.GetLine(curLine), Sci.PositionFromLine(curLine));
                     if (returnType.resolve.Member?.Type == ASContext.Context.Features.voidKey) return;
-                    ShowAssignStatementToVarList(found, options, returnType);
+                    if (returnType.resolve.Type == null && returnType.resolve.Context?.WordBefore == "new") ShowNewClassList(found, options, returnType.resolve.Context);
+                    else ShowAssignStatementToVarList(found, options, returnType);
                     return;
                 }
             }
@@ -534,15 +535,15 @@ namespace ASCompletion.Completion
 
         static bool CheckAutoImport(ASResult expr, List<ICompletionListItem> options)
         {
-            if (ASContext.Context.CurrentClass.Equals(expr.Type)) return false;
+            if (ASContext.Context.CurrentClass.Equals(expr.RelClass)) return false;
             MemberList allClasses = ASContext.Context.GetAllProjectClasses();
             if (allClasses != null)
             {
-                List<string> names = new List<string>();
+                var names = new HashSet<string>();
                 List<MemberModel> matches = new List<MemberModel>();
                 string dotToken = "." + contextToken;
                 foreach (MemberModel member in allClasses)
-                    if (member.Name.EndsWithOrdinal(dotToken) && !names.Contains(member.Name))
+                    if (!names.Contains(member.Name) && member.Name.EndsWithOrdinal(dotToken))
                     {
                         matches.Add(member);
                         names.Add(member.Name);
@@ -737,13 +738,12 @@ namespace ASCompletion.Completion
             options.Add(new GeneratorItem(label, GeneratorJobType.AssignStatementToVar, found.member, found.inClass, data));
         }
 
-        private static void ShowNewClassList(FoundDeclaration found, List<ICompletionListItem> options)
+        private static void ShowNewClassList(FoundDeclaration found, ICollection<ICompletionListItem> options) => ShowNewClassList(found, options, null);
+
+        static void ShowNewClassList(FoundDeclaration found, ICollection<ICompletionListItem> options, ASExpr expr)
         {
-            if (GetLangIsValid())
-            {
-                string labelClass = TextHelper.GetString("ASCompletion.Label.GenerateClass");
-                options.Add(new GeneratorItem(labelClass, GeneratorJobType.Class, found.member, found.inClass));
-            }
+            var label = TextHelper.GetString("ASCompletion.Label.GenerateClass");
+            options.Add(new GeneratorItem(label, GeneratorJobType.Class, found.member, found.inClass, expr));
         }
 
         private static void ShowConstructorAndToStringList(FoundDeclaration found, bool hasConstructor, bool hasToString, List<ICompletionListItem> options)
@@ -1071,8 +1071,8 @@ namespace ASCompletion.Completion
                     break;
 
                 case GeneratorJobType.Class:
-                    String clasName = sci.GetWordFromPosition(sci.CurrentPos);
-                    GenerateClass(sci, clasName, inClass);
+                    if (data is ASExpr) GenerateClass(sci, inClass, (ASExpr) data);
+                    else GenerateClass(sci, inClass, sci.GetWordFromPosition(sci.CurrentPos));
                     break;
 
                 case GeneratorJobType.Constructor:
@@ -2949,18 +2949,29 @@ namespace ASCompletion.Completion
             InsertCode(position, decl);
         }
 
-        private static void GenerateClass(ScintillaControl sci, String className, ClassModel inClass)
+        static void GenerateClass(ScintillaControl sci, ClassModel inClass, ASExpr data)
+        {
+            var parameters = ParseFunctionParameters(sci, sci.WordEndPosition(data.PositionExpression, false));
+            GenerateClass(inClass, data.Value, parameters);
+        }
+
+        static void GenerateClass(ScintillaControl sci, ClassModel inClass, string className)
+        {
+            var parameters = ParseFunctionParameters(sci, sci.WordEndPosition(sci.CurrentPos, true));
+            GenerateClass(inClass, className, parameters);
+        }
+
+        private static void GenerateClass(ClassModel inClass, string className, IList<FunctionParameter> parameters)
         {
             AddLookupPosition(); // remember last cursor position for Shift+F4
 
-            List<FunctionParameter> parameters = ParseFunctionParameters(sci, sci.WordEndPosition(sci.CurrentPos, true));
             List<MemberModel> constructorArgs = new List<MemberModel>();
             List<String> constructorArgTypes = new List<String>();
             MemberModel paramMember = new MemberModel();
             for (int i = 0; i < parameters.Count; i++)
             {
                 FunctionParameter p = parameters[i];
-                constructorArgs.Add(new MemberModel(p.paramName, p.paramType, FlagType.ParameterVar, 0));
+                constructorArgs.Add(new MemberModel(AvoidKeyword(p.paramName), p.paramType, FlagType.ParameterVar, 0));
                 constructorArgTypes.Add(CleanType(GetQualifiedType(p.paramQualType, inClass)));
             }
             
@@ -4038,13 +4049,13 @@ namespace ASCompletion.Completion
         #endregion
 
         #region override generator
+
         /// <summary>
         /// List methods to override
         /// </summary>
-        /// <param name="sci">Scintilla control</param>
         /// <param name="autoHide">Don't keep the list open if the word does not match</param>
         /// <returns>Completion was handled</returns>
-        static private bool HandleOverrideCompletion(ScintillaControl sci, bool autoHide)
+        static bool HandleOverrideCompletion(bool autoHide)
         {
             // explore members
             IASContext ctx = ASContext.Context;
@@ -4073,6 +4084,7 @@ namespace ASCompletion.Completion
                 {
                     foreach (MemberModel member in tmpClass.Members)
                     {
+                        if (curClass.Members.Search(member.Name, FlagType.Override, 0) != null) continue;
                         var parameters = member.Parameters;
                         if ((member.Flags & FlagType.Dynamic) > 0
                             && (member.Access & acc) > 0
