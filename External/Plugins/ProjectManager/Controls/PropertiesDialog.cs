@@ -626,13 +626,14 @@ namespace ProjectManager.Controls
             // propertyGrid
             // 
             this.propertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.propertyGrid.LineColor = System.Drawing.SystemColors.ScrollBar;
             this.propertyGrid.Location = new System.Drawing.Point(3, 3);
+            this.propertyGrid.LineColor = System.Drawing.SystemColors.ScrollBar;
             this.propertyGrid.Name = "propertyGrid";
             this.propertyGrid.Size = new System.Drawing.Size(328, 266);
             this.propertyGrid.TabIndex = 0;
             this.propertyGrid.ToolbarVisible = false;
             this.propertyGrid.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGrid_PropertyValueChanged);
+            this.propertyGrid.Font = this.Font;
             // 
             // sdkTabPage
             // 
@@ -683,7 +684,6 @@ namespace ProjectManager.Controls
             // 
             // labelUseGlobal
             // 
-            this.labelUseGlobal.AutoSize = true;
             this.labelUseGlobal.Location = new System.Drawing.Point(8, 18);
             this.labelUseGlobal.Name = "labelUseGlobal";
             this.labelUseGlobal.Size = new System.Drawing.Size(154, 13);
@@ -740,8 +740,7 @@ namespace ProjectManager.Controls
             this.customTextBox.TextChanged += new EventHandler(this.customTextBox_TextChanged);
             // 
             // labelUseCustom
-            // 
-            this.labelUseCustom.AutoSize = true;
+            //
             this.labelUseCustom.Location = new System.Drawing.Point(8, 18);
             this.labelUseCustom.Name = "labelUseCustom";
             this.labelUseCustom.Size = new System.Drawing.Size(213, 13);

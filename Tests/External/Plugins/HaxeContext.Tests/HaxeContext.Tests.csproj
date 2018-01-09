@@ -67,6 +67,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\RefactorCommandTests.cs" />
+    <Compile Include="Completion\CodeGeneratorTests.cs" />
     <Compile Include="ContextTests.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -77,9 +79,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestUtils\TestFile.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Test Files\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\External\Plugins\AS2Context\AS2Context.csproj">
       <Project>{74ad0487-cef9-43fe-9283-bc6f79539ade}</Project>
@@ -89,6 +89,11 @@
     <ProjectReference Include="..\..\..\..\External\Plugins\ASCompletion\ASCompletion.csproj">
       <Project>{4EBF2653-9654-4E40-880E-0046B3D6210E}</Project>
       <Name>ASCompletion</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\External\Plugins\CodeRefactor\CodeRefactor.csproj">
+      <Project>{1F6DF858-6011-4CAC-B33E-7000EE90FFBE}</Project>
+      <Name>CodeRefactor</Name>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\External\Plugins\HaXeContext\HaXeContext.csproj">
@@ -111,10 +116,46 @@
       <Name>ASCompletion.Tests</Name>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\CodeRefactor.Tests\CodeRefactor.Tests.csproj">
+      <Project>{19C1FEE5-CEC3-442B-99B2-3F3FC955CAB4}</Project>
+      <Name>CodeRefactor.Tests</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\BeforeOrganizeImports_issue191_1.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\AfterOrganizeImports_issue191_1.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\BeforeOrganizeImports_withImportsFromSameModule2.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\AfterOrganizeImports.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\AfterOrganizeImports_withElseIfDirective.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\AfterOrganizeImports_withImportsFromSameModule.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\AfterOrganizeImports_withImportsFromSameModule2.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\BeforeOrganizeImports.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\BeforeOrganizeImports_withElseIfDirective.hx" />
+    <EmbeddedResource Include="Test Files\coderefactor\organizeimports\BeforeOrganizeImports_withImportsFromSameModule.hx" />
+    <EmbeddedResource Include="Test Files\parser\Issue1849_1.hx" />
+    <EmbeddedResource Include="Test Files\parser\Issue1849_2.hx" />
+    <EmbeddedResource Include="Test Files\parser\Issue1849_3.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1833_1.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1833_1.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1833_2.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1833_2.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1743_1.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1743_1.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1743_2.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1743_2.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1743_3.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1743_3.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\BeforeContextualGeneratorTests_issue1927_1.hx" />
+    <EmbeddedResource Include="Test Files\completion\generated\AfterContextualGeneratorTests_issue1927_1.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_1.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_2.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_3.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_4.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_5.hx" />
+    <EmbeddedResource Include="Test Files\parser\ResolveDotContext_Issue1916_6.hx" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
