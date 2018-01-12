@@ -852,7 +852,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\External\Plugins\AdvancedHaxeContext\AdvancedHaxeContext\AdvancedHaxeContext.csproj">
-      <Project>{a2710e4c-a2f8-4ced-a63a-8e77420b96ea}</Project>
+      <Project>{A2710E4C-A2F8-4CED-A63A-8E77420B96EA}</Project>
       <Name>AdvancedHaxeContext</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\External\Plugins\AS2Context\AS2Context.csproj">
