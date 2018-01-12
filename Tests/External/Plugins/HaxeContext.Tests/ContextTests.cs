@@ -6,6 +6,7 @@ using ASCompletion.Model;
 using ASCompletion.TestUtils;
 using HaXeContext.TestUtils;
 using NUnit.Framework;
+using PluginCore;
 
 namespace HaXeContext
 {
@@ -106,35 +107,40 @@ namespace HaXeContext
         {
             get
             {
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_1"))
-                    .Returns(null)
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_1"), null)
                     .SetName("case 1");
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_2"))
-                    .Returns(new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_2"), new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
                     .SetName("case 2");
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_3"))
-                    .Returns(new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_3"), new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
                     .SetName("case 3");
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_4"))
-                    .Returns(null)
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_4"), null)
                     .SetName("case 4");
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_5"))
-                    .Returns(new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_5"), new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
                     .SetName("case 5");
-                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1916_6"))
-                    .Returns(new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
+                yield return new TestCaseData(ReadAllText("ResolveDotContext_Issue1926_6"), new MemberModel("code", "Int", FlagType.Getter, Visibility.Public))
                     .SetName("case 6");
             }
         }
 
         [Test, TestCaseSource(nameof(ResolveDotContext_issue750TestCases))]
-        public MemberModel ResolveDotContext_issue750(string sourceText)
+        public void ResolveDotContext_issue750(string sourceText, MemberModel code)
         {
             ((HaXeSettings)ASContext.Context.Settings).CompletionMode = HaxeCompletionModeEnum.FlashDevelop;
             SetSrc(sci, sourceText);
             var expr = ASComplete.GetExpression(sci, sci.CurrentPos);
             var list = ASContext.Context.ResolveDotContext(sci, expr, false);
-            return list?.Search("code", FlagType.Getter, Visibility.Public);
+            if (code == null) Assert.IsNull(list);
+            else
+            {
+                var members = ASContext.Context.ResolveType(ASContext.Context.Features.stringKey, ASContext.Context.CurrentModel)
+                    .Members.Items.Where(it => !it.Flags.HasFlag(FlagType.Static) && it.Access.HasFlag(Visibility.Public))
+                    .ToArray();
+                var expectedList = new MemberList();
+                foreach (var member in members) expectedList.Add(member);
+                expectedList.Add(code);
+                expectedList.Sort();
+                Assert.AreEqual(expectedList, list);
+            }
         }
 
         static IEnumerable<TestCaseData> IsImportedTestCases
@@ -170,40 +176,60 @@ namespace HaXeContext
         {
             get
             {
-                yield return new TestCaseData("true")
+                yield return new TestCaseData("true", "3.4.0")
                     .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore})
                     .SetName("true");
-                yield return new TestCaseData("false")
+                yield return new TestCaseData("false", "3.4.0")
                     .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore})
                     .SetName("false");
-                yield return new TestCaseData("{}")
+                yield return new TestCaseData("{}", "3.4.0")
                     .Returns(new ClassModel {Name = "Dynamic", Type = "Dynamic", InFile = FileModel.Ignore})
                     .SetName("{}");
-                yield return new TestCaseData("10")
+                yield return new TestCaseData("10", "3.4.0")
                     .Returns(new ClassModel {Name = "Float", Type = "Float", InFile = FileModel.Ignore})
                     .SetName("10");
-                yield return new TestCaseData("-10")
+                yield return new TestCaseData("-10", "3.4.0")
                     .Returns(new ClassModel {Name = "Float", Type = "Float", InFile = FileModel.Ignore})
                     .SetName("-10");
-                yield return new TestCaseData("\"\"")
+                yield return new TestCaseData("\"\"", "3.4.0")
                     .Returns(new ClassModel {Name = "String", Type = "String", InFile = FileModel.Ignore})
                     .SetName("\"\"");
-                yield return new TestCaseData("''")
+                yield return new TestCaseData("''", "3.4.0")
                     .Returns(new ClassModel {Name = "String", Type = "String", InFile = FileModel.Ignore})
                     .SetName("''");
-                yield return new TestCaseData("0xFF0000")
+                yield return new TestCaseData("0xFF0000", "3.4.0")
                     .Returns(new ClassModel {Name = "Int", Type = "Int", InFile = FileModel.Ignore})
                     .SetName("0xFF0000");
-                yield return new TestCaseData("[]")
+                yield return new TestCaseData("[]", "3.4.0")
                     .Returns(new ClassModel {Name = "Array<T>", Type = "Array<T>", InFile = FileModel.Ignore})
                     .SetName("[]");
-                yield return new TestCaseData("[1 => 1]")
+                yield return new TestCaseData("[1 => 1]", "3.4.0")
                     .Returns(new ClassModel {Name = "Map<K, V>", Type = "Map<K, V>", InFile = FileModel.Ignore})
                     .SetName("[1 => 1]");
+                yield return new TestCaseData("(v is String)", "3.4.0")
+                    .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("(['is'] is Array)", "3.4.0")
+                    .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("(' is string' is String)", "3.4.0")
+                    .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("({x:Int, y:Int} is Point)", "3.4.0")
+                    .Returns(new ClassModel {Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("('   is  ' is Array)", "3.4.0")
+                    .Returns(new ClassModel { Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("('   is  '   is  Array)", "3.4.0")
+                    .Returns(new ClassModel { Name = "Bool", Type = "Bool", InFile = FileModel.Ignore});
+                yield return new TestCaseData("(v:String)", "3.4.0")
+                    .Returns(new ClassModel {Name = "String", Type = "String", InFile = FileModel.Ignore});
+                yield return new TestCaseData("(v:String)", "3.0.0")
+                    .Returns(ClassModel.VoidClass);
             }
         }
 
         [Test, TestCaseSource(nameof(ResolveTokenTestCases))]
-        public ClassModel ResolveToken(string token) => ASContext.Context.ResolveToken(token, null);
+        public ClassModel ResolveToken(string token, string sdkVersion)
+        {
+            ASContext.Context.Settings.InstalledSDKs = new[] {new InstalledSDK {Path = PluginBase.CurrentProject.CurrentSDK, Version = sdkVersion}};
+            return ASContext.Context.ResolveToken(token, null);
+        }
     }
 }
