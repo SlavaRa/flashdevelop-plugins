@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ASCompletion.Context;
+using ASCompletion.Generators;
 using ASCompletion.Helpers;
 using ASCompletion.Model;
 using ASCompletion.Settings;
@@ -69,9 +70,8 @@ namespace ASCompletion.Completion
 
             contextMatch = null;
             contextToken = Sci.GetWordFromPosition(position);
+            if (context.CodeGenerator.ContextualGenerator(Sci, position, options)) return;
             ASResult resolve = ASComplete.GetExpressionType(Sci, Sci.WordEndPosition(position, true));
-            if (context.CodeGenerator.ContextualGenerator(Sci, options, resolve)) return;
-
             int line = Sci.LineFromPosition(position);
             FoundDeclaration found = GetDeclarationAtLine(line);
             bool isNotInterface = (context.CurrentClass.Flags & FlagType.Interface) == 0;
@@ -114,7 +114,8 @@ namespace ASCompletion.Completion
             var suggestItemDeclaration = false;
             if (contextToken != null && resolve.Member == null) // import declaration
             {
-                if ((resolve.Type == null || resolve.Type.IsVoid() || !context.IsImported(resolve.Type, line)) && context.CodeGenerator.CheckAutoImport(resolve, options)) return;
+                if ((resolve.Type == null || resolve.Type.IsVoid() || !context.IsImported(resolve.Type, line)) 
+                    && context.CodeGenerator is ASGenerator && ((ASGenerator)context.CodeGenerator).CheckAutoImport(resolve, options)) return;
                 if (resolve.Type == null)
                 {
                     suggestItemDeclaration = ASComplete.IsTextStyle(Sci.BaseStyleAt(position - 1));
@@ -132,7 +133,7 @@ namespace ASCompletion.Completion
                     {
                         contextMatch = m;
                         ClassModel type = context.ResolveType(contextToken, context.CurrentModel);
-                        if (type.IsVoid() && context.CodeGenerator.CheckAutoImport(resolve, options))
+                        if (type.IsVoid() && context.CodeGenerator is ASGenerator && ((ASGenerator)context.CodeGenerator).CheckAutoImport(resolve, options))
                             return;
                     }
                     ShowGetSetList(found, options);
@@ -439,7 +440,7 @@ namespace ASCompletion.Completion
             // TODO: Empty line, show generators list? yep
         }
 
-        public virtual bool ContextualGenerator(ScintillaControl sci, List<ICompletionListItem> options, ASResult expr) => false;
+        public virtual bool ContextualGenerator(ScintillaControl sci, int position, List<ICompletionListItem> options) => false;
 
         private static MemberModel ResolveDelegate(string type, FileModel inFile)
         {
@@ -2466,16 +2467,18 @@ namespace ASCompletion.Completion
             int subClosuresCount = 0;
             var arrCount = 0;
             IASContext ctx = ASContext.Context;
-            char[] charsToTrim = new char[] { ' ', '\t', '\r', '\n' };
+            char[] charsToTrim = {' ', '\t', '\r', '\n'};
             int counter = sci.TextLength; // max number of chars in parameters line (to avoid infinitive loop)
             string characterClass = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
             int lastMemberPos = p;
 
+            char c = ' ';
             // add [] and <>
             while (p < counter && !doBreak)
             {
-                var c = (char)sci.CharAt(p++);
-                ASResult result = null;
+                var c2 = c;
+                c = (char)sci.CharAt(p++);
+                ASResult result;
                 if (c == '(' && !isFuncStarted)
                 {
                     if (sb.ToString().Trim(charsToTrim).Length == 0)
@@ -2499,21 +2502,7 @@ namespace ASCompletion.Completion
                     if (c == '[') arrCount++;
                     if (subClosuresCount == 0)
                     {
-                        if (c == '{')
-                        {
-                            if (sb.ToString().TrimStart().Length > 0)
-                            {
-                                result = new ASResult();
-                                result.Type = ctx.ResolveType("Function", null);
-                                types.Insert(0, result);
-                            }
-                            else
-                            {
-                                result = ASComplete.GetExpressionType(sci, p);
-                                types.Insert(0, result);
-                            }
-                        }
-                        else if (c == '(')
+                        if (c == '(')
                         {
                             if (!sb.ToString().Contains("<") && !isFuncStarted)
                             {
@@ -2538,34 +2527,48 @@ namespace ASCompletion.Completion
                     sb.Append(c);
                     wasEscapeChar = false;
                 }
-                else if ((c == ')' || c == ']' || c == '>' || c == '}') && !wasEscapeChar && !isDoubleQuote && !isSingleQuote)
+                else if ((c == ')' || c == ']' || (c2 != '-' && c == '>') || c == '}') && !wasEscapeChar && !isDoubleQuote && !isSingleQuote)
                 {
+                    if (c == ']') arrCount--;
                     subClosuresCount--;
                     sb.Append(c);
                     wasEscapeChar = false;
-                    if (c == ']')
+                    if (subClosuresCount == 0)
                     {
-                        if (arrCount > 0) arrCount--;
-                        if (arrCount == 0)
+                        if (c == ']')
                         {
-                            var cNext = sci.CharAt(p);
-                            if (cNext != '[' && cNext != '.')
+                            if (arrCount == 0)
                             {
-                                if (!sb.ToString().Contains("<"))
+                                var cNext = sci.CharAt(p);
+                                if (cNext != '[' && cNext != '.')
                                 {
-                                    result = ASComplete.GetExpressionType(sci, p);
-                                    if (result.Type != null) result.Member = null;
-                                    else result.Type = ctx.ResolveType(ctx.Features.arrayKey, null);
-                                    types.Insert(0, result);
+                                    if (!sb.ToString().Contains("<"))
+                                    {
+                                        result = ASComplete.GetExpressionType(sci, p);
+                                        if (result.Type != null) result.Member = null;
+                                        else result.Type = ctx.ResolveType(ctx.Features.arrayKey, null);
+                                        types.Insert(0, result);
+                                    }
+                                    writeParam = true;
                                 }
-                                writeParam = true;
                             }
                         }
-                    }
-                    else if (c == ')' && subClosuresCount == 0 && sb.ToString().StartsWithOrdinal("new"))
-                    {
-                        lastMemberPos = p - 1;
-                        writeParam = true;
+                        else if (c == ')' && sb.ToString().StartsWithOrdinal("new"))
+                        {
+                            lastMemberPos = p - 1;
+                            writeParam = true;
+                        }
+                        else if (c == '}')
+                        {
+                            var s = sb.ToString().TrimStart();
+                            if (s.Length > 0 && s.StartsWith("function"))
+                            {
+                                result = new ASResult();
+                                result.Type = ctx.ResolveType("Function", null);
+                                types.Insert(0, result);
+                            }
+                            else types.Insert(0, ASComplete.GetExpressionType(sci, p));
+                        }
                     }
                 }
                 else if (c == '\\')
@@ -4839,7 +4842,8 @@ namespace ASCompletion.Completion
                 ASContext.Panel.SetLastLookupPosition(sci.FileName, lookupLine, lookupCol);
             }
         }
-        #endregion     
+
+        #endregion
     }
 
     #region related structures

@@ -2619,7 +2619,7 @@ namespace ASCompletion.Completion
             if (asFunction && tokens.Length == 1) token += "(";
             if (context.SubExpressions != null && context.SubExpressions.Count == 1)
             {
-                var value = context.Value;
+                var value = token;
                 value = value.Replace(char.IsLetter(value[0]) ? ".#0~" : "#0~", context.SubExpressions.First());
                 type = ctx.ResolveToken(value, inClass.InFile);
             }
@@ -3566,7 +3566,7 @@ namespace ASCompletion.Completion
                     }
                     else if (genCount == 0 && arrCount == 0 && parCount == 0)
                     {
-                        if (c == '}' && sQuotes == 0 && dQuotes == 0)
+                        if (c == '}')
                         {
                             if (!ignoreWhiteSpace && hadWS)
                             {
@@ -3575,7 +3575,7 @@ namespace ASCompletion.Completion
                             }
                             braCount++;
                         }
-                        else if (c == '{' && braCount > 0)
+                        else if (c == '{')
                         {
                             braCount--;
                             if (braCount == 0)
@@ -3584,70 +3584,76 @@ namespace ASCompletion.Completion
                                 expression.Separator = ";";
                                 continue;
                             }
+                            if (braCount < 0)
+                            {
+                                expression.Separator = ";";
+                                break;
+                            }
                         }
-                        else if (c == '\"' && sQuotes == 0)
+                        else if (braCount == 0)
                         {
-                            if (position == 0 || (char)sci.CharAt(position - 1) == '\\') continue;
-                            if (dQuotes == 0) dQuotes++;
-                            else
+                            if (c == '\"' && sQuotes == 0)
                             {
-                                dQuotes--;
-                                if (dQuotes == 0)
+                                if (position == 0 || (char)sci.CharAt(position - 1) == '\\') continue;
+                                if (dQuotes == 0) dQuotes++;
+                                else
                                 {
-                                    expression.Separator = ";";
-                                    if (expression.SubExpressions != null)
+                                    dQuotes--;
+                                    if (dQuotes == 0)
                                     {
-                                        sbSub.Insert(0, "\"");
-                                        sb.Insert(0, sbSub.ToString());
-                                        break;
+                                        expression.Separator = ";";
+                                        if (expression.SubExpressions != null)
+                                        {
+                                            sbSub.Insert(0, "\"");
+                                            sb.Insert(0, sbSub.ToString());
+                                            break;
+                                        }
+                                        sb.Insert(0, "\"" + sbSub + "\"");
+                                        positionExpression = position;
+                                        continue;
                                     }
-                                    sb.Insert(0, "\"" + sbSub + "\"");
-                                    positionExpression = position;
-                                    continue;
                                 }
-                            }
-                            if (hadDot)
-                            {
-                                sbSub.Clear();
-                                sbSub.Insert(0, "\"");
-                                if (expression.SubExpressions == null) expression.SubExpressions = new List<string>();
-                                expression.SubExpressions.Add(string.Empty);
-                                sb.Insert(0, ".#" + (subCount++) + "~");
-                            }
-                            else hadDot = false;
-                            continue;
-                        }
-                        else if (c == '\'' && dQuotes == 0)
-                        {
-                            if (position == 0 || (char)sci.CharAt(position - 1) == '\\') continue;
-                            if (sQuotes == 0) sQuotes++;
-                            else
-                            {
-                                sQuotes--;
-                                if (sQuotes == 0)
+                                if (hadDot)
                                 {
-                                    expression.Separator = ";";
-                                    if (expression.SubExpressions != null)
-                                    {
-                                        sbSub.Insert(0, "'");
-                                        sb.Insert(0, sbSub.ToString());
-                                        break;
-                                    }
-                                    sb.Insert(0, "'" + sbSub + "'");
-                                    positionExpression = position;
-                                    continue;
+                                    sbSub.Clear();
+                                    sbSub.Insert(0, "\"");
+                                    if (expression.SubExpressions == null) expression.SubExpressions = new List<string>();
+                                    expression.SubExpressions.Add(string.Empty);
+                                    sb.Insert(0, ".#" + (subCount++) + "~");
                                 }
+                                continue;
                             }
-                            if (hadDot)
+                            if (c == '\'' && dQuotes == 0)
                             {
-                                sbSub.Clear();
-                                sbSub.Insert(0, "'");
-                                if (expression.SubExpressions == null) expression.SubExpressions = new List<string>();
-                                expression.SubExpressions.Add(string.Empty);
-                                sb.Insert(0, ".#" + (subCount++) + "~");
+                                if (position == 0 || (char)sci.CharAt(position - 1) == '\\') continue;
+                                if (sQuotes == 0) sQuotes++;
+                                else
+                                {
+                                    sQuotes--;
+                                    if (sQuotes == 0)
+                                    {
+                                        expression.Separator = ";";
+                                        if (expression.SubExpressions != null)
+                                        {
+                                            sbSub.Insert(0, "'");
+                                            sb.Insert(0, sbSub.ToString());
+                                            break;
+                                        }
+                                        sb.Insert(0, "'" + sbSub + "'");
+                                        positionExpression = position;
+                                        continue;
+                                    }
+                                }
+                                if (hadDot)
+                                {
+                                    sbSub.Clear();
+                                    sbSub.Insert(0, "'");
+                                    if (expression.SubExpressions == null) expression.SubExpressions = new List<string>();
+                                    expression.SubExpressions.Add(string.Empty);
+                                    sb.Insert(0, ".#" + (subCount++) + "~");
+                                }
+                                continue;
                             }
-                            else hadDot = false;
-                            continue;
                         }
                     }
                     if (parCount > 0 || arrCount > 0 || genCount > 0 || braCount > 0 || dQuotes > 0 || sQuotes > 0) 
@@ -4475,7 +4481,7 @@ namespace ASCompletion.Completion
         public static int ExpressionEndPosition(ScintillaControl sci, int position)
         {
             var member = ASContext.Context.CurrentMember;
-            var endPosition = member != null ? sci.PositionFromLine(member.LineTo) : sci.TextLength;
+            var endPosition = member != null ? sci.LineEndPosition(member.LineTo) : sci.TextLength;
             return ExpressionEndPosition(sci, position, endPosition);
         }
 
