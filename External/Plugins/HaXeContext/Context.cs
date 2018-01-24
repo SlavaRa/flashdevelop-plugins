@@ -12,11 +12,13 @@ using PluginCore.Helpers;
 using PluginCore;
 using ASCompletion.Completion;
 using System.Linq;
+using System.Text;
 using System.Windows.Forms;
 using ProjectManager.Projects.Haxe;
 using ProjectManager.Projects;
 using AS3Context;
 using HaXeContext.Completion;
+using HaXeContext.Generators;
 using PluginCore.Utilities;
 using ScintillaNet;
 
@@ -141,6 +143,7 @@ namespace HaXeContext
             features.ConstructorKey = "new";
             features.ArithmeticOperators = new HashSet<char> {'+', '-', '*', '/', '%'};
             features.IncrementDecrementOperators = new[] {"++", "--"};
+            features.OtherOperators = new HashSet<string> {"untyped", "cast", "new"};
             /* INITIALIZATION */
 
             settings = initSettings;
@@ -152,6 +155,7 @@ namespace HaXeContext
 
             haxelibsCache = new Dictionary<string, List<string>>();
             CodeGenerator = new CodeGenerator();
+            DocumentationGenerator = new DocumentationGenerator();
             //BuildClassPath(); // defered to first use
         }
         #endregion
@@ -871,6 +875,8 @@ namespace HaXeContext
         /// <param name="atLine">Position in the file</param>
         public override bool IsImported(MemberModel member, int atLine)
         {
+            if (member == ClassModel.VoidClass) return false;
+            if (member.InFile?.Package == CurrentModel.Package) return true;
             int p = member.Name.IndexOf('#');
             if (p > 0)
             {
@@ -956,6 +962,84 @@ namespace HaXeContext
             }
 
             return GetModel(package, cname, inPackage);
+        }
+
+        public override ClassModel ResolveToken(string token, FileModel inFile)
+        {
+            if (token?.Length > 0)
+            {
+                if (token.StartsWithOrdinal("0x")) return ResolveType("Int", inFile);
+                var first = token[0];
+                var last = token[token.Length - 1];
+                if (first == '[' && last == ']')
+                {
+                    var dQuotes = 0;
+                    var sQuotes = 0;
+                    var length = token.Length;
+                    var arrayComprehensionEnd = length - 3;
+                    for (var i = 1; i < length; i++)
+                    {
+                        var c = token[i];
+                        if (c == '\"' && sQuotes == 0)
+                        {
+                            if (i <= 1 || token[i - 2] == '\\') continue;
+                            if (dQuotes == 0) dQuotes++;
+                            else dQuotes--;
+                        }
+                        else if (c == '\'' && dQuotes == 0)
+                        {
+                            if (i <= 1 || token[i - 2] == '\\') continue;
+                            if (sQuotes == 0) sQuotes++;
+                            else sQuotes--;
+                        }
+                        if (sQuotes > 0 || dQuotes > 0) continue;
+                        if (i <= arrayComprehensionEnd && c == '=' && token[i + 1] == '>')
+                            // TODO: try parse K, V
+                            return ResolveType("Map<K, V>", inFile);
+                    }
+                    return ResolveType(features.arrayKey, inFile);
+                }
+                if (first == '{' && last == '}')
+                {
+                    //TODO: parse anonymous type
+                    return ResolveType(features.dynamicKey, inFile);
+                }
+                if (first == '(' && last == ')')
+                {
+                    if (Regex.IsMatch(token, @"\((?<lv>.+)\s(?<op>is)\s+(?<rv>\w+)\)")) return ResolveType(features.booleanKey, inFile);
+                    if (GetCurrentSDKVersion() >= "3.1.0")
+                    {
+                        var groupCount = 0;
+                        var sb = new StringBuilder(token.Length - 2);
+                        for (var i = token.Length - 2; i >= 1; i--)
+                        {
+                            var c = token[i];
+                            if (c == '}' || c == ')') groupCount++;
+                            else if (c == '{' || c == '(') groupCount--;
+                            else if (c == ':' && groupCount == 0) break;
+                            sb.Insert(0, c);
+                        }
+                        return ResolveType(sb.ToString(), inFile);
+                    }
+                }
+                else if (token.StartsWithOrdinal("cast("))
+                {
+                    var groupCount = 0;
+                    var length = token.Length - 1;
+                    for (var i = "cast(".Length; i < length; i++)
+                    {
+                        var c = token[i];
+                        if (c == '{' || c == '(') groupCount++;
+                        else if (c == '}' || c == ')') groupCount--;
+                        else if (c == ',' && groupCount == 0)
+                        {
+                            i++;
+                            return ResolveType(token.Substring(i, length - i).Trim(), inFile);
+                        }
+                    }
+                }
+            }
+            return base.ResolveToken(token, inFile);
         }
 
         ClassModel ResolveTypeByPackage(string package, string cname, FileModel inFile, string inPackage)
@@ -1340,6 +1424,13 @@ namespace HaXeContext
                         {
                             if (result == null) result = new MemberList();
                             result.Add(new MemberModel("code", "Int", FlagType.Getter, Visibility.Public) {Comments = "The character code of this character(inlined at compile-time)"});
+                            var type = ResolveType(features.stringKey, CurrentModel);
+                            foreach (MemberModel member in type.Members)
+                            {
+                                if (member.Flags.HasFlag(FlagType.Static) || !member.Access.HasFlag(Visibility.Public)) continue;
+                                result.Add(member);
+                            }
+                            result.Sort();
                         }
                     }
                 }
@@ -1348,8 +1439,10 @@ namespace HaXeContext
 
             // auto-started completion, can be ignored for performance (show default completion tooltip)
             if (exprValue.IndexOfOrdinal(".") < 0 || (autoHide && !exprValue.EndsWith('.')))
-            if (hxsettings.DisableMixedCompletion && exprValue.Length > 0 && autoHide) return new MemberList();
-            else return null;
+            {
+                if (hxsettings.DisableMixedCompletion && exprValue.Length > 0 && autoHide) return new MemberList();
+                return null;
+            }
 
             // empty expression
             if (exprValue != "")
