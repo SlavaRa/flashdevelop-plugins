@@ -76,8 +76,8 @@ namespace ASCompletion.Completion
                     dataEventModel = CreateDataEventModel();
                     found = new FoundDeclaration
                     {
-                        inClass = new ClassModel(),
-                        member = new MemberModel()
+                        InClass = new ClassModel(),
+                        Member = new MemberModel()
                     };
                 }
 
@@ -537,12 +537,17 @@ namespace ASCompletion.Completion
                         yield return
                             new TestCaseData(ReadAllTextHaxe("BeforeImplementInterface_issue1696_1"), GeneratorJobType.ImplementInterface)
                                 .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1696_1"))
-                                .SetName("Implement interface methods. Issue 1696")
+                                .SetName("Implement interface methods. Issue 1696. Case 1")
                                 .SetDescription("https://github.com/fdorg/flashdevelop/issues/1696");
                         yield return
                             new TestCaseData(ReadAllTextHaxe("BeforeImplementInterface_issue1696_2"), GeneratorJobType.ImplementInterface)
                                 .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1696_2"))
-                                .SetName("Implement interface properties. Issue 1696")
+                                .SetName("Implement interface properties. Issue 1696. Case 2")
+                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1696");
+                        yield return
+                            new TestCaseData(ReadAllTextHaxe("BeforeImplementInterface_issue1696_3"), GeneratorJobType.ImplementInterface)
+                                .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1696_3"))
+                                .SetName("Implement interface properties. Issue 1696. Case 3")
                                 .SetDescription("https://github.com/fdorg/flashdevelop/issues/1696");
                     }
                 }
@@ -557,8 +562,10 @@ namespace ASCompletion.Completion
                 string Common(string sourceText, GeneratorJobType job)
                 {
                     SetSrc(sci, sourceText);
-                    ASGenerator.contextParam = ASContext.Context.CurrentClass.Implements.First();
-                    ASGenerator.GenerateJob(job, null, ASContext.Context.CurrentClass, null, null);
+                    var options = new List<ICompletionListItem>();
+                    ASGenerator.ContextualGenerator(sci, options);
+                    var item = options.Find(it => ((GeneratorItem)it).job == job);
+                    var value = item.Value;
                     return sci.Text;
                 }
             }
@@ -1576,7 +1583,34 @@ namespace ASCompletion.Completion
                 }
 
                 [Test, TestCaseSource(nameof(HaxeTestCases))]
-                public string Haxe(string sourceText, GeneratorJobType job, bool isUseTabs) => HaxeImpl(sourceText, job, isUseTabs, sci);
+                public string Haxe(string sourceText, GeneratorJobType job, bool isUseTabs)
+                {
+                    SetHaxeFeatures(sci);
+                    return HaxeImpl(sourceText, job, isUseTabs, sci);
+                }
+
+                static IEnumerable<TestCaseData> HaxeTestCasesSdk330
+                {
+                    get
+                    {
+                        yield return new TestCaseData(ReadAllTextHaxe("BeforeAssignStatementToVar_issue1992_typecheck"), GeneratorJobType.AssignStatementToVar, true)
+                            .Returns(ReadAllTextHaxe("AfterAssignStatementToVar_issue1992_typecheck"))
+                            .SetName("Issue 1992. from (v:Iterable<Dynamic>)")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1908");
+                        yield return new TestCaseData(ReadAllTextHaxe("BeforeAssignStatementToVar_issue1992_typecheck_2"), GeneratorJobType.AssignStatementToVar, true)
+                            .Returns(ReadAllTextHaxe("AfterAssignStatementToVar_issue1992_typecheck_2"))
+                            .SetName("Issue 1992. from (v:Iterable<Iterable<Dynamic>>)")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1908");
+                    }
+                }
+
+                [Test, TestCaseSource(nameof(HaxeTestCasesSdk330))]
+                public string HaxeSdk330(string sourceText, GeneratorJobType job, bool isUseTabs)
+                {
+                    SetHaxeFeatures(sci);
+                    ASContext.Context.Settings.InstalledSDKs = new[] {new InstalledSDK {Path = PluginBase.CurrentProject.CurrentSDK, Version = "3.3.0"}};
+                    return HaxeImpl(sourceText, job, isUseTabs, sci);
+                }
 
                 internal static string AS3Impl(string sourceText, GeneratorJobType job, bool isUseTabs, ScintillaControl sci)
                 {
@@ -1591,7 +1625,6 @@ namespace ASCompletion.Completion
                 internal static string HaxeImpl(string sourceText, GeneratorJobType job, bool isUseTabs, ScintillaControl sci)
                 {
                     sci.IsUseTabs = isUseTabs;
-                    SetHaxeFeatures(sci);
                     SetSrc(sci, sourceText);
                     return Common(sourceText, job, ASContext.Context, sci);
                 }
@@ -3142,100 +3175,6 @@ namespace ASCompletion.Completion
             }
 
             [TestFixture]
-            public class AddInterfaceDefTests : GenerateJob
-            {
-                [TestFixtureSetUp]
-                public void AddInterfaceDefTestsSetup() => ASContext.Context.Settings.GenerateImports.Returns(true);
-
-                public IEnumerable<TestCaseData> HaxeTestCases
-                {
-                    get
-                    {
-                        yield return
-                            new TestCaseData("BeforeAddInterfaceDefTests_issue1731_1")
-                                .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1731_1"))
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1731");
-                    }
-                }
-
-                [Test, TestCaseSource(nameof(HaxeTestCases))]
-                public string Haxe(string fileName) => HaxeImpl(fileName, sci);
-
-                internal static string HaxeImpl(string fileName, ScintillaControl sci)
-                {
-                    SetHaxeFeatures(sci);
-                    SetCurrentFileName(GetFullPathHaxe(fileName));
-                    return Common(ReadAllTextHaxe(fileName), sci);
-                }
-
-                internal static string Common(string sourceText, ScintillaControl sci)
-                {
-                    SetSrc(sci, sourceText);
-                    var options = new List<ICompletionListItem>();
-                    ASGenerator.ContextualGenerator(sci, options);
-                    var item = options.Find(it => ((GeneratorItem)it).job == GeneratorJobType.AddInterfaceDef);
-                    var value = item.Value;
-                    return sci.Text;
-                }
-            }
-
-            [TestFixture]
-            public class ContextualGeneratorTests : GenerateJob
-            {
-                [TestFixtureSetUp]
-                public void AddInterfaceDefTestsSetup() => ASContext.Context.Settings.GenerateImports.Returns(true);
-
-                public IEnumerable<TestCaseData> HaxeTestCases
-                {
-                    get
-                    {
-                        yield return
-                            new TestCaseData("BeforeContextualGeneratorTests_issue1747_1")
-                                .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_1"))
-                                .SetName("Issue1747. Case 1")
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
-                        yield return
-                            new TestCaseData("BeforeContextualGeneratorTests_issue1747_2")
-                                .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_2"))
-                                .SetName("Issue1747. Case 2")
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
-                        yield return
-                            new TestCaseData("BeforeContextualGeneratorTests_issue1747_3")
-                                .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_3"))
-                                .SetName("Issue1747. Case 3")
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
-                        yield return
-                            new TestCaseData("BeforeContextualGeneratorTests_issue1747_4")
-                                .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_4"))
-                                .SetName("Issue1747. Case 4")
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
-                        yield return
-                            new TestCaseData("BeforeContextualGeneratorTests_issue1767_1")
-                                .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1767_1"))
-                                .SetName("Issue1767. Case 1")
-                                .SetDescription("https://github.com/fdorg/flashdevelop/issues/1767");
-                    }
-                }
-
-                [Test, TestCaseSource(nameof(HaxeTestCases))]
-                public string Haxe(string fileName) => HaxeImpl(fileName, sci);
-
-                internal static string HaxeImpl(string fileName, ScintillaControl sci)
-                {
-                    SetHaxeFeatures(sci);
-                    SetCurrentFileName(GetFullPathHaxe(fileName));
-                    return Common(ReadAllTextHaxe(fileName), sci);
-                }
-
-                internal static string Common(string sourceText, ScintillaControl sci)
-                {
-                    SetSrc(sci, sourceText);
-                    ASGenerator.ContextualGenerator(sci, new List<ICompletionListItem>());
-                    return sci.Text;
-                }
-            }
-
-            [TestFixture]
             public class GenerateClassTests : GenerateJob
             {
                 public IEnumerable<TestCaseData> HaxeTestCases
@@ -3289,12 +3228,39 @@ namespace ASCompletion.Completion
             }
 
             [TestFixture]
-            public class GeneratorJobTypeConstructorTests : GenerateJob
+            public class ContextualGeneratorTests : GenerateJob
             {
-                public IEnumerable<TestCaseData> HaxeTestCases
+                [TestFixtureSetUp]
+                public void Setup()
+                {
+                    ASContext.Context.Settings.GenerateImports.Returns(true);
+                    SetHaxeFeatures(sci);
+                }
+
+                public IEnumerable<TestCaseData> ContextualGeneratorTestCases
                 {
                     get
                     {
+                        yield return new TestCaseData("BeforeContextualGeneratorTests_issue1747_1", 0, false)
+                            .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_1"))
+                            .SetName("Issue1747. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
+                        yield return new TestCaseData("BeforeContextualGeneratorTests_issue1747_2", 0, false)
+                            .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_2"))
+                            .SetName("Issue1747. Case 2")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
+                        yield return new TestCaseData("BeforeContextualGeneratorTests_issue1747_3", 0, false)
+                            .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_3"))
+                            .SetName("Issue1747. Case 3")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
+                        yield return new TestCaseData("BeforeContextualGeneratorTests_issue1747_4", 0, false)
+                            .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1747_4"))
+                            .SetName("Issue1747. Case 4")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1747");
+                        yield return new TestCaseData("BeforeContextualGeneratorTests_issue1767_1", 0, false)
+                            .Returns(ReadAllTextHaxe("AfterContextualGeneratorTests_issue1767_1"))
+                            .SetName("Issue1767. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1767");
                         yield return new TestCaseData("BeforeGenerateConstructor_issue1738_1", GeneratorJobType.Constructor, true)
                             .Returns(ReadAllTextHaxe("AfterGenerateConstructor_issue1738_1"))
                             .SetName("Generate constructor")
@@ -3325,22 +3291,69 @@ namespace ASCompletion.Completion
                         yield return new TestCaseData("BeforeGenerateConstructor_issue1738_9", GeneratorJobType.ChangeConstructorDecl, true)
                             .Returns(ReadAllTextHaxe("AfterGenerateConstructor_issue1738_9"))
                             .SetDescription("https://github.com/fdorg/flashdevelop/issues/1738");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_1", GeneratorJobType.ImplementInterface, true)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_1"))
+                            .SetName("Issue1982. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_2", GeneratorJobType.ImplementInterface, false)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_2"))
+                            .SetName("Issue1982. Case 2")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_3", GeneratorJobType.ImplementInterface, false)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_3"))
+                            .SetName("Issue1982. Case 3")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_4", GeneratorJobType.ImplementInterface, false)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_4"))
+                            .SetName("Issue1982. Case 4")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_5", GeneratorJobType.ImplementInterface, false)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_5"))
+                            .SetName("Issue1982. Case 5")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
+                        yield return new TestCaseData("BeforeImplementInterface_issue1982_6", GeneratorJobType.ImplementInterface, false)
+                            .Returns(ReadAllTextHaxe("AfterImplementInterface_issue1982_6"))
+                            .SetName("Issue1982. Case 6")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1982");
                     }
                 }
 
-                [Test, TestCaseSource(nameof(HaxeTestCases))]
-                public string Haxe(string fileName, GeneratorJobType job, bool hasGenerator) => HaxeImpl(sci, fileName, job, hasGenerator);
+                [Test, TestCaseSource(nameof(ContextualGeneratorTestCases))]
+                public string ContextualGenerator(string fileName, GeneratorJobType job, bool hasGenerator) => Common(sci, fileName, job, hasGenerator);
 
-                internal static string HaxeImpl(ScintillaControl sci, string fileName, GeneratorJobType job, bool hasGenerator)
+                public IEnumerable<TestCaseData> AddToInterfaceTestCases
                 {
-                    SetHaxeFeatures(sci);
-                    SetCurrentFileName(GetFullPathHaxe(fileName));
-                    return Common(sci, ReadAllTextHaxe(fileName), job, hasGenerator);
+                    get
+                    {
+                        yield return new TestCaseData("BeforeAddInterfaceDefTests_issue1731_1", GeneratorJobType.AddInterfaceDef, true)
+                            .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1731_1"))
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1731");
+                        yield return new TestCaseData("BeforeAddInterfaceDefTests_issue1989_1", GeneratorJobType.AddInterfaceDef, false)
+                            .SetName("Issue 1989. Case 1")
+                            .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1989_1"))
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1989");
+                        yield return new TestCaseData("BeforeAddInterfaceDefTests_issue1989_2", GeneratorJobType.AddInterfaceDef, false)
+                            .SetName("Issue 1989. Case 2")
+                            .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1989_2"))
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1989");
+                        yield return new TestCaseData("BeforeAddInterfaceDefTests_issue1989_3", GeneratorJobType.AddInterfaceDef, false)
+                            .SetName("Issue 1989. Case 3")
+                            .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1989_3"))
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1989");
+                        yield return new TestCaseData("BeforeAddInterfaceDefTests_issue1989_4", GeneratorJobType.AddInterfaceDef, false)
+                            .SetName("Issue 1989. Case 4")
+                            .Returns(ReadAllTextHaxe("AfterAddInterfaceDefTests_issue1989_4"))
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1989");
+                    }
                 }
 
-                internal static string Common(ScintillaControl sci, string sourceText, GeneratorJobType job, bool hasGenerator)
+                [Test, TestCaseSource(nameof(AddToInterfaceTestCases))]
+                public string AddToInterface(string fileName, GeneratorJobType job, bool hasGenerator) => Common(sci, fileName, job, hasGenerator);
+
+                internal static string Common(ScintillaControl sci, string fileName, GeneratorJobType job, bool hasGenerator)
                 {
-                    SetSrc(sci, sourceText);
+                    SetCurrentFileName(GetFullPathHaxe(fileName));
+                    SetSrc(sci, ReadAllTextHaxe(fileName));
                     var options = new List<ICompletionListItem>();
                     ASGenerator.ContextualGenerator(sci, options);
                     var item = options.Find(it => it is GeneratorItem && ((GeneratorItem) it).job == job);
@@ -3351,6 +3364,102 @@ namespace ASCompletion.Completion
                     }
                     else Assert.IsNull(item);
                     return sci.Text;
+                }
+            }
+
+            [TestFixture]
+            public class ContextualGeneratorTests2 : GenerateJob
+            {
+                [TestFixtureSetUp]
+                public void Setup() => ASContext.Context.Settings.GenerateImports.Returns(true);
+
+                public IEnumerable<TestCaseData> HaxeTestCases
+                {
+                    get
+                    {
+                        yield return new TestCaseData("ContextualGenerator_issue1984_1", false)
+                            .SetName("Issue1984. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_2", false)
+                            .SetName("Issue1984. Case 2")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_3", false)
+                            .SetName("Issue1984. Case 3")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_4", false)
+                            .SetName("Issue1984. Case 4")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_5", false)
+                            .SetName("Issue1984. Case 5")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_6", false)
+                            .SetName("Issue1984. Case 6")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_7", false)
+                            .SetName("Issue1984. Case 7")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_8", false)
+                            .SetName("Issue1984. Case 8")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_9", false)
+                            .SetName("Issue1984. Case 9")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1984_10", false)
+                            .SetName("Issue1984. Case 10")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1984");
+                        yield return new TestCaseData("ContextualGenerator_issue1987_1", false)
+                            .SetName("Issue1987. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1987");
+                        yield return new TestCaseData("ContextualGenerator_issue1987_2", false)
+                            .SetName("Issue1987. Case 2")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1987");
+                        yield return new TestCaseData("ContextualGenerator_issue1987_3", false)
+                            .SetName("Issue1987. Case 3")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1987");
+                        yield return new TestCaseData("ContextualGenerator_issue1987_4", false)
+                            .SetName("Issue1987. Case 4")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1987");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_1", false)
+                            .SetName("Issue1995. Case 1")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_2", false)
+                            .SetName("Issue1995. Case 2")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_3", false)
+                            .SetName("Issue1995. Case 3")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_4", true)
+                            .SetName("Issue1995. Case 4")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_5", true)
+                            .SetName("Issue1995. Case 5")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_6", false)
+                            .SetName("Issue1995. Case 6")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995")
+                            .Ignore("");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_7", false)
+                            .SetName("Issue1995. Case 7")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/1995");
+                        yield return new TestCaseData("ContextualGenerator_issue1995_8", false)
+                            .SetName("Issue1995. Case 8")
+                            .SetDescription("https://github.com/fdorg/flashdevelop/issues/2005");
+                    }
+                }
+
+                [Test, TestCaseSource(nameof(HaxeTestCases))]
+                public void Haxe(string fileName, bool hasGenerator) => Common(sci, fileName, hasGenerator);
+
+                internal static void Common(ScintillaControl sci, string fileName, bool hasGenerator)
+                {
+                    SetHaxeFeatures(sci);
+                    SetCurrentFileName(GetFullPathHaxe(fileName));
+                    SetSrc(sci, ReadAllTextHaxe(fileName));
+                    sci.Colourise(0, -1);
+                    var options = new List<ICompletionListItem>();
+                    ASGenerator.ContextualGenerator(sci, options);
+                    if (hasGenerator) Assert.IsNotEmpty(options);
+                    else Assert.IsEmpty(options);
                 }
             }
         }
