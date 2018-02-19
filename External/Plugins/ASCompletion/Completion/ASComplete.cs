@@ -2312,31 +2312,17 @@ namespace ASCompletion.Completion
                 IASContext ctx = ASContext.Context;
                 ClassModel aClass = ctx.ResolveType(newItemType, ctx.CurrentModel);
 
-                ICompletionListItem newItem;
+                ICompletionListItem newItem = null;
                 if (!aClass.IsVoid())
                 {
                     // AS2 special srictly typed Arrays supports
                     int p = newItemType.IndexOf('@');
-                    if (p > -1)
-                    {
-                        newItemType = newItemType.Substring(0, p);
-                        newItem = null;
-                    }
+                    if (p > -1) newItemType = newItemType.Substring(0, p);
                     else if (!string.IsNullOrEmpty(aClass.IndexType))
                     {
                         newItemType = aClass.QualifiedName;
                         newItem = new MemberItem(new MemberModel(newItemType, aClass.Type, aClass.Flags, aClass.Access));
                     }
-                    else
-                    {
-                        newItem = null;
-                    }
-                }
-                else if (newItemType == "Vector.")
-                {
-                    // HACK: Vector.<*> is wrongly parsed! should be looked into. Remove once it's fixed.
-                    newItemType = "Vector";
-                    newItem = null;
                 }
                 else
                 {
@@ -2856,8 +2842,7 @@ namespace ASCompletion.Completion
                 if (local.LocalVars != null)
                 {
                     // Haxe 3 get/set keyword in properties declaration
-                    if ((token == "set" || token == "get") && local.ContextFunction == null
-                        && contextMember != null && contextMember.Parameters != null && contextMember.Parameters.Count == 2)
+                    if ((token == "set" || token == "get") && local.ContextFunction == null && contextMember?.Parameters != null && contextMember.Parameters.Count == 2)
                     {
                         if (token == "get" && contextMember.Parameters[0].Name == "get") return EvalVariable("get_" + contextMember.Name, local, inFile, inClass);
                         if (token == "set" && contextMember.Parameters[1].Name == "set") return EvalVariable("set_" + contextMember.Name, local, inFile, inClass);
@@ -2866,7 +2851,7 @@ namespace ASCompletion.Completion
                     var subExpressionsCount = local.SubExpressions?.Count ?? 0;
                     foreach (MemberModel var in local.LocalVars)
                     {
-                        if (var.Name == token && (subExpressionsCount == 0 || var.Flags.HasFlag(FlagType.Function)))
+                        if (var.Name == token && (var.Flags.HasFlag(FlagType.Function) || subExpressionsCount != 1 || local.Value[local.Value.Length - 1] != /*.#0*/'~'))
                         {
                             result.Member = var;
                             result.InFile = inFile;
@@ -2884,7 +2869,7 @@ namespace ASCompletion.Completion
                     }
                 }
                 // method parameters
-                if (local.ContextFunction != null && local.ContextFunction.Parameters != null)
+                if (local.ContextFunction?.Parameters != null)
                 {
                     foreach (MemberModel para in local.ContextFunction.Parameters)
                         if (para.Name == token || (para.Name[0] == '?' && para.Name.Substring(1) == token))
@@ -3011,7 +2996,7 @@ namespace ASCompletion.Completion
                         {
                             foreach (ClassModel aClass in aDecl.InFile.Classes)
                                 if (aClass.Name == aDecl.Name) return aClass;
-                            return context.GetModel(aDecl.InFile.Package, qname, inFile != null ? inFile.Package : null);
+                            return context.GetModel(aDecl.InFile.Package, qname, inFile?.Package);
                         }
                         else return context.ResolveType(aDecl.Type, inFile);
                     }
@@ -3476,6 +3461,32 @@ namespace ASCompletion.Completion
                             break;
                         }
                     }
+                    else if (c == '>' && arrCount == 0)
+                    {
+                        if (haXe && position - 1 > minPos && (char)sci.CharAt(position - 1) == '-')
+                        {
+                        }
+                        else if (hasGenerics)
+                        {
+                            if (c2 == '.' || c2 == ',' || c2 == '(' || c2 == '[' || c2 == '>' || c2 == '}' || c2 == ')' || position + 1 == startPosition)
+                            {
+                                genCount++;
+                                var length = sb.Length;
+                                if (length >= 3)
+                                {
+                                    var fc = sb[0];
+                                    var sc = sb[1];
+                                    var lc = sb[length - 1];
+                                    if (fc == '.' && sc == '[' && (lc == ']' || (length >= 4 && sb[length - 2] == ']' && lc == '.')))
+                                    {
+                                        sbSub.Insert(0, sb.ToString(1, length - 1));
+                                        sb.Clear();
+                                    }
+                                }
+                            }
+                            else break;
+                        }
+                    }
                     // ignore sub-expressions (method calls' parameters)
                     else if (c == '(')
                     {
@@ -3533,32 +3544,6 @@ namespace ASCompletion.Completion
                             sbSub = new StringBuilder();
                         }
                         parCount++;
-                    }
-                    else if (c == '>' && arrCount == 0)
-                    {
-                        if (haXe && position - 1 > minPos && (char) sci.CharAt(position - 1) == '-')
-                        {
-                        }
-                        else if (hasGenerics)
-                        {
-                            if (c2 == '.' || c2 == ',' || c2 == '(' || c2 == '[' || c2 == '>' || c2 == '}' || c2 == ')' || position + 1 == startPosition)
-                            {
-                                genCount++;
-                                var length = sb.Length;
-                                if (length >= 3)
-                                {
-                                    var fc = sb[0];
-                                    var sc = sb[1];
-                                    var lc = sb[length - 1];
-                                    if (fc == '.' && sc == '[' && (lc == ']' || (length >= 4 && sb[length - 2] == ']' && lc == '.')))
-                                    {
-                                        sbSub.Insert(0, sb.ToString(1, length - 1));
-                                        sb.Clear();
-                                    }
-                                }
-                            }
-                            else break;
-                        }
                     }
                     else if (genCount == 0 && arrCount == 0 && parCount == 0)
                     {
@@ -3718,12 +3703,12 @@ namespace ASCompletion.Completion
                             expression.Separator = " ";
                             break;
                         }
-                        if (subCount > 0)
+                        genCount--;
+                        if (subCount > 0 || genCount < 0)
                         {
                             sb.Insert(0, sbSub);
                             sbSub.Clear();
                         }
-                        genCount--;
                     }
                     else if (c == '{')
                     {
@@ -4016,7 +4001,7 @@ namespace ASCompletion.Completion
             {
                 MemberModel cm = expression.ContextMember;
                 string functionBody = Regex.Replace(expression.FunctionBody, "function\\s*\\(", "function __anonfunc__("); // name anonymous functions
-                model = ASContext.Context.GetCodeModel(functionBody);
+                model = ASContext.Context.GetCodeModel(functionBody, true);
                 int memberCount = model.Members.Count;
                 for (int memberIndex = 0; memberIndex < memberCount; memberIndex++)
                 {

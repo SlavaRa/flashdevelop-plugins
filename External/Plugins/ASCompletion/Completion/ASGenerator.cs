@@ -1430,7 +1430,13 @@ namespace ASCompletion.Completion
             if (string.IsNullOrEmpty(type) && !resolve.IsNull())
             {
                 if (resolve.Member?.Type != null) type = resolve.Member.Type;
-                else if (resolve.Type?.Name != null) type = resolve.Type.QualifiedName;
+                else if (resolve.Type?.Name != null)
+                {
+                    type = resolve.Type.QualifiedName;
+                    if (resolve.Type.IndexType == "*") type += ".<*>";
+                    else if (resolve.Type.FullName.Contains(".<Vector>")) type = resolve.Type.FullName.Replace(".<Vector>", ".<Vector.<*>>");
+                }
+
                 if (resolve.Member?.Name != null) varname = GuessVarName(resolve.Member.Name, type);
             }
             if (!string.IsNullOrEmpty(word) && (string.IsNullOrEmpty(type) || Regex.IsMatch(type, "(<[^]]+>)"))) word = null;
@@ -1612,12 +1618,7 @@ namespace ASCompletion.Completion
 
                 ASContext.MainForm.OpenEditableDocument(funcResult.InClass.InFile.FileName, true);
                 sci = ASContext.CurSciControl;
-
-                FileModel fileModel = new FileModel();
-                fileModel.Context = ASContext.Context;
-                ASFileParser parser = new ASFileParser();
-                parser.ParseSrc(fileModel, sci.Text);
-
+                var fileModel = ASContext.Context.GetCodeModel(sci.Text);
                 foreach (ClassModel cm in fileModel.Classes)
                 {
                     if (cm.QualifiedName.Equals(funcResult.InClass.QualifiedName))
@@ -1662,12 +1663,7 @@ namespace ASCompletion.Completion
 
                 ASContext.MainForm.OpenEditableDocument(funcResult.Type.InFile.FileName, true);
                 sci = ASContext.CurSciControl;
-
-                FileModel fileModel = new FileModel(funcResult.Type.InFile.FileName);
-                fileModel.Context = ASContext.Context;
-                ASFileParser parser = new ASFileParser();
-                parser.ParseSrc(fileModel, sci.Text);
-
+                var fileModel = ASContext.Context.GetFileModel(funcResult.Type.InFile.FileName);
                 foreach (ClassModel cm in fileModel.Classes)
                 {
                     if (cm.QualifiedName.Equals(funcResult.Type.QualifiedName))
@@ -1828,8 +1824,7 @@ namespace ASCompletion.Completion
             var context = ASContext.Context;
             ClassModel aType = context.ResolveType(interf, context.CurrentModel);
             if (aType.IsVoid()) return;
-
-            FileModel fileModel = ASFileParser.ParseFile(context.CreateFileModel(aType.InFile.FileName));
+            var fileModel = ASContext.Context.GetFileModel(aType.InFile.FileName);
             foreach (ClassModel cm in fileModel.Classes)
             {
                 if (cm.QualifiedName.Equals(aType.QualifiedName))
@@ -2381,12 +2376,7 @@ namespace ASCompletion.Completion
                 ASContext.MainForm.OpenEditableDocument(varResult.RelClass.InFile.FileName, false);
                 sci = ASContext.CurSciControl;
                 isOtherClass = true;
-
-                FileModel fileModel = new FileModel();
-                fileModel.Context = ASContext.Context;
-                ASFileParser parser = new ASFileParser();
-                parser.ParseSrc(fileModel, sci.Text);
-
+                var fileModel = ASContext.Context.GetCodeModel(sci.Text);
                 foreach (ClassModel cm in fileModel.Classes)
                 {
                     if (cm.QualifiedName.Equals(varResult.RelClass.QualifiedName))
@@ -2888,11 +2878,7 @@ namespace ASCompletion.Completion
                 ASContext.MainForm.OpenEditableDocument(funcResult.RelClass.InFile.FileName, true);
                 sci = ASContext.CurSciControl;
                 isOtherClass = true;
-
-                var fileModel = new FileModel {Context = ASContext.Context};
-                var parser = new ASFileParser();
-                parser.ParseSrc(fileModel, sci.Text);
-
+                var fileModel = ASContext.Context.GetCodeModel(sci.Text);
                 foreach (ClassModel cm in fileModel.Classes)
                 {
                     if (cm.QualifiedName.Equals(funcResult.RelClass.QualifiedName))
@@ -3169,10 +3155,7 @@ namespace ASCompletion.Completion
             expression = expression.TrimEnd(new char[] { '(', '[', '{', '<' });
             expression = expression.TrimStart(new char[] { ')', ']', '}', '>' });
 
-            var cFile = ASContext.Context.CurrentModel;
-            ASFileParser parser = new ASFileParser();
-            parser.ParseSrc(cFile, sci.Text);
-
+            var cFile = ASContext.Context.GetCodeModel(ASContext.Context.CurrentModel, sci.Text);
             MemberModel current = cFile.Context.CurrentMember;
 
             string characterClass = ScintillaControl.Configuration.GetLanguage(sci.ConfigurationLanguage).characterclass.Characters;
@@ -3284,10 +3267,7 @@ namespace ASCompletion.Completion
             }
             InsertCode(sci.CurrentPos, template, sci);
 
-            var cFile = ASContext.Context.CurrentModel;
-            ASFileParser parser = new ASFileParser();
-            parser.ParseSrc(cFile, sci.Text);
-
+            ASContext.Context.GetCodeModel(ASContext.Context.CurrentModel, sci.Text);
             FoundDeclaration found = GetDeclarationAtLine(lineStart);
             if (found.Member == null) return;
 
