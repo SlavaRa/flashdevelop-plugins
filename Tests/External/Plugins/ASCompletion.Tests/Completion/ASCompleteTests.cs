@@ -66,11 +66,7 @@ namespace ASCompletion.Completion
             protected static string GetFullPath(string fileName) => $"ASCompletion.Test_Files.completion.as3.{fileName}.as";
 
             [TestFixtureSetUp]
-            public void Setup()
-            {
-                ASContext.Context.SetAs3Features();
-                sci.ConfigurationLanguage = "as3";
-            }
+            public void Setup() => SetAs3Features(sci);
 
             [Test]
             public void GetExpressionTypeSimpleTest()
@@ -357,11 +353,10 @@ namespace ASCompletion.Completion
                         new TestCaseData(ReadAllText("GetExpressionOfNewTwoDimensionalVector"))
                             .Returns("new Vector.<Vector.<String>>")
                             .SetName("From new Vector.<Vector.<String>>|");
-                    yield return
-                        new TestCaseData(ReadAllText("GetExpressionOfRegex"))
-                            .Returns(";g")
-                            .SetName("From /regex/g|")
-                            .Ignore("https://github.com/fdorg/flashdevelop/issues/1880");
+                    yield return new TestCaseData(ReadAllText("GetExpressionOfRegex"))
+                        .Returns(" #RegExp")
+                        .SetName("From /regex/g|")
+                        .SetDescription("https://github.com/fdorg/flashdevelop/issues/1880");
                     yield return
                         new TestCaseData(ReadAllText("GetExpressionOfDigit"))
                             .Returns(";1")
@@ -479,6 +474,21 @@ namespace ASCompletion.Completion
                     yield return new TestCaseData("new Vector.<*>().$(EntryPoint)")
                         .Returns("new Vector.<*>().")
                         .SetName("new Vector.<*>().|");
+                    yield return new TestCaseData(">> 1$(EntryPoint)")
+                        .Returns(">>1")
+                        .SetName(">>1");
+                    yield return new TestCaseData(">>> 1$(EntryPoint)")
+                        .Returns(">>>1")
+                        .SetName(">>>1");
+                    yield return new TestCaseData("<< 1$(EntryPoint)")
+                        .Returns("<<1")
+                        .SetName("<<1");
+                    yield return new TestCaseData("1 | 2$(EntryPoint)")
+                        .Returns("|2")
+                        .SetName("|2");
+                    yield return new TestCaseData(" ~2$(EntryPoint)")
+                        .Returns("~2")
+                        .SetName("~2");
                 }
             }
 
@@ -541,6 +551,14 @@ namespace ASCompletion.Completion
                         .Returns("test".Length);
                     yield return new TestCaseData(ReadAllText("ExpressionEndPosition_TypeOfVariable"))
                         .Returns(94);
+                    yield return new TestCaseData("Test2 {\n}")
+                        .Returns("Test2".Length);
+                    yield return new TestCaseData("Test2{\n}")
+                        .Returns("Test2".Length);
+                    yield return new TestCaseData("[1] }\n  private function foo() {\n}")
+                        .Returns("[1]".Length);
+                    yield return new TestCaseData("'' }\n  private function foo() {\n}")
+                        .Returns("''".Length);
                 }
             }
 
@@ -898,6 +916,18 @@ namespace ASCompletion.Completion
                         new TestCaseData("case _: (v:{x:Int, y:Int->Array<Int>}).$(EntryPoint)")
                             .Returns(":(v:{x:Int, y:Int->Array<Int>}).")
                             .SetName("case _: {(v:{x:Int, y:Int->Array<Int>}).|");
+                    yield return new TestCaseData("function foo(Math.random() > .5 || Math.random() < 0.5 ? {x:10, y:10} : null).$(EntryPoint)")
+                        .Returns("function foo(Math.random() > .5 || Math.random() < 0.5 ? {x:10, y:10} : null).")
+                        .SetName("function foo(Math.random() > .5 || Math.random() < 0.5 ? {x:10, y:10} : null).|");
+                    yield return new TestCaseData("function foo(1 << 2).$(EntryPoint)")
+                        .Returns("function foo(1 << 2).")
+                        .SetName("function foo(1 << 2).|");
+                    yield return new TestCaseData("function foo(1 >> 2).$(EntryPoint)")
+                        .Returns("function foo(1 >> 2).")
+                        .SetName("function foo(1 >> 2).|");
+                    yield return new TestCaseData("function foo(1 >>> 3).$(EntryPoint)")
+                        .Returns("function foo(1 >>> 3).")
+                        .SetName("function foo(1 >>> 3).|");
                 }
             }
 
@@ -1032,9 +1062,9 @@ namespace ASCompletion.Completion
                     yield return new TestCaseData("test(); //")
                         .Returns("test()".Length);
                     yield return new TestCaseData("test[1]; //")
-                        .Returns("test".Length);
+                        .Returns("test[1]".Length);
                     yield return new TestCaseData("test['1']; //")
-                        .Returns("test".Length);
+                        .Returns("test['1']".Length);
                     yield return new TestCaseData("x:10, y:10}; //")
                         .Returns("x".Length);
                     yield return new TestCaseData("test()); //")
@@ -1044,7 +1074,7 @@ namespace ASCompletion.Completion
                     yield return new TestCaseData("test()}; //")
                         .Returns("test()".Length);
                     yield return new TestCaseData("test[1]); //")
-                        .Returns("test".Length);
+                        .Returns("test[1]".Length);
                     yield return new TestCaseData("test(), 1, 2); //")
                         .Returns("test()".Length);
                     yield return new TestCaseData("test().test().test().test; //")
@@ -1067,6 +1097,24 @@ namespace ASCompletion.Completion
                         .Returns("test".Length);
                     yield return new TestCaseData("test(/*12345*/); //")
                         .Returns("test(/*12345*/)".Length);
+                    yield return new TestCaseData("test(Math.random() > 0.5 ? 1 : 1); //")
+                        .Returns("test(Math.random() > 0.5 ? 1 : 1)".Length);
+                    yield return new TestCaseData("[1,2,3,4]; //")
+                        .Returns("[1,2,3,4]".Length);
+                    yield return new TestCaseData("{v:1}; //")
+                        .Returns("{v:1}".Length);
+                    yield return new TestCaseData("{v:[1]}; //")
+                        .Returns("{v:[1]}".Length);
+                    yield return new TestCaseData("[{v:[1]}]; //")
+                        .Returns("[{v:[1]}]".Length);
+                    yield return new TestCaseData("(v:{v:Int}); //")
+                        .Returns("(v:{v:Int})".Length);
+                    yield return new TestCaseData("[(v:{v:Int})]; //")
+                        .Returns("[(v:{v:Int})]".Length);
+                    yield return new TestCaseData("[function() {return 1;}]; //")
+                        .Returns("[function() {return 1;}]".Length);
+                    yield return new TestCaseData("'12345'; //")
+                        .Returns("'12345'".Length);
                 }
             }
 
