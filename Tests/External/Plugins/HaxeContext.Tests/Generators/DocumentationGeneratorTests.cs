@@ -3,7 +3,6 @@ using System.IO;
 using ASCompletion;
 using ASCompletion.Context;
 using ASCompletion.Generators;
-using ASCompletion.TestUtils;
 using HaXeContext.TestUtils;
 using NSubstitute;
 using NUnit.Framework;
@@ -21,7 +20,7 @@ namespace HaXeContext.Generators
         protected static string GetFullPath(string fileName) => $"{nameof(HaXeContext)}.Test_Files.generators.documentation.{fileName}.hx";
 
         [TestFixtureSetUp]
-        public void DocumentationGeneratorSetUp() => ASContext.Context.SetHaxeFeatures();
+        public void DocumentationGeneratorSetUp() => SetHaxeFeatures(sci);
 
         public class ContextualGeneratorTests : DocumentationGeneratorTests
         {
@@ -84,6 +83,9 @@ namespace HaXeContext.Generators
                         yield return new TestCaseData("BeforeGenerateDocumentation_methodDetails_6", DocumentationGeneratorJobType.MethodDetails, true)
                             .Returns(ReadAllText("AfterGenerateDocumentation_methodDetails_6"))
                             .SetName("MethodDetails. Case 6");
+                        yield return new TestCaseData("BeforeGenerateDocumentation_methodDetails_7", DocumentationGeneratorJobType.MethodDetails, true)
+                            .Returns(ReadAllText("AfterGenerateDocumentation_methodDetails_7"))
+                            .SetName("MethodDetails. Case 7");
                     }
                 }
 
