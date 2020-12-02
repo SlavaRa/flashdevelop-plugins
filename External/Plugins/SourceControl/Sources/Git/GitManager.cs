@@ -4,42 +4,33 @@ using System.Text.RegularExpressions;
 
 namespace SourceControl.Sources.Git
 {
-    class GitManager : IVCManager
+    internal class GitManager : IVCManager
     {
         public event VCManagerStatusChange OnChange;
 
-        Dictionary<string, Status> statusCache = new Dictionary<string, Status>();
-        IVCMenuItems menuItems = new MenuItems();
-        IVCFileActions fileActions = new FileActions();
-        Regex reIgnore = new Regex("[/\\\\]\\.git([/\\\\]|$)");
-        bool ignoreDirty = false;
+        readonly Dictionary<string, Status> statusCache = new Dictionary<string, Status>();
+        readonly Regex reIgnore = new Regex("[/\\\\]\\.git([/\\\\]|$)");
+        bool ignoreDirty;
 
-        public IVCMenuItems MenuItems { get { return menuItems; } }
-        public IVCFileActions FileActions { get { return fileActions; } }
+        public IVCMenuItems MenuItems { get; } = new MenuItems();
 
-        public GitManager()
-        {
-        }
+        public IVCFileActions FileActions { get; } = new FileActions();
 
-        public bool IsPathUnderVC(string path)
-        {
-            return Directory.Exists(Path.Combine(path, ".git"));
-        }
+        public bool IsPathUnderVC(string path) => Directory.Exists(Path.Combine(path, ".git"));
 
         public VCItemStatus GetOverlay(string path, string rootPath)
         {
-            StatusNode snode = FindNode(path, rootPath);
-            if (snode != null) return snode.Status;
-            else return VCItemStatus.Ignored;
+            var snode = FindNode(path, rootPath);
+            return snode?.Status ?? VCItemStatus.Ignored;
         }
 
-        private StatusNode FindNode(string path, string rootPath)
+        StatusNode? FindNode(string path, string rootPath)
         {
             if (statusCache.ContainsKey(rootPath))
             {
-                Status status = statusCache[rootPath];
-                int len = path.Length;
-                int rlen = rootPath.Length + 1;
+                var status = statusCache[rootPath];
+                var len = path.Length;
+                var rlen = rootPath.Length + 1;
                 if (len < rlen) path = ".";
                 else path = path.Substring(rlen);
 
@@ -48,23 +39,23 @@ namespace SourceControl.Sources.Git
             return null;
         }
 
-        public List<VCStatusReport> GetAllOverlays(string path, string rootPath)
+        public List<VCStatusReport>? GetAllOverlays(string path, string rootPath)
         {
-            StatusNode root = FindNode(path, rootPath);
-            if (root == null) return null;
+            var root = FindNode(path, rootPath);
+            if (root is null) return null;
 
-            List<StatusNode> children = new List<StatusNode>();
+            var children = new List<StatusNode>();
             GetChildren(root, children);
-            List<VCStatusReport> result = new List<VCStatusReport>();
-            foreach (StatusNode child in children)
+            var result = new List<VCStatusReport>();
+            foreach (var child in children)
                 result.Add(new VCStatusReport(GetNodePath(child, rootPath), child.Status));
             return result;
         }
 
-        private string GetNodePath(StatusNode child, string rootPath)
+        static string GetNodePath(StatusNode child, string rootPath)
         {
-            char S = Path.DirectorySeparatorChar;
-            string path = "";
+            var S = Path.DirectorySeparatorChar;
+            var path = "";
             while (child != null && child.Name != ".")
             {
                 path = S + child.Name + path;
@@ -73,10 +64,10 @@ namespace SourceControl.Sources.Git
             return rootPath + S + path;
         }
 
-        private void GetChildren(StatusNode node, List<StatusNode> result)
+        static void GetChildren(StatusNode node, ICollection<StatusNode> result)
         {
-            if (node.Children == null) return;
-            foreach (StatusNode child in node.Children.Values)
+            if (node.Children is null) return;
+            foreach (var child in node.Children.Values)
             {
                 result.Add(child);
                 GetChildren(child, result);
@@ -89,7 +80,7 @@ namespace SourceControl.Sources.Git
             if (!statusCache.ContainsKey(rootPath))
             {
                 status = new Status(rootPath);
-                status.OnResult += new StatusResult(Status_OnResult);
+                status.OnResult += Status_OnResult;
                 statusCache[rootPath] = status;
             }
             else status = statusCache[rootPath];
@@ -100,23 +91,19 @@ namespace SourceControl.Sources.Git
         void Status_OnResult(Status status)
         {
             ignoreDirty = false;
-            if (OnChange != null) OnChange(this);
+            OnChange?.Invoke(this);
         }
 
         public bool SetPathDirty(string path, string rootPath)
         {
-            if (ignoreDirty) return false;
-            if (statusCache.ContainsKey(rootPath))
-            {
-                if (reIgnore.IsMatch(path)) return false;
-                return statusCache[rootPath].SetPathDirty(path);
-            }
-            return false;
+            return !ignoreDirty
+                   && !reIgnore.IsMatch(path)
+                   && statusCache.ContainsKey(rootPath)
+                   && statusCache[rootPath].SetPathDirty(path);
         }
 
-        public void Commit(string[] files, string message)
-        {
-            new CommitCommand(files, message, Path.GetDirectoryName(files[0]));
-        }
+        public VCCommand Commit(string[] files, string message) => new CommitCommand(files, message, Path.GetDirectoryName(files[0]));
+
+        public VCCommand Unstage(string file) => new UnstageCommand(file);
     }
 }

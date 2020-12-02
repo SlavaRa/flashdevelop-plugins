@@ -1,15 +1,18 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace SourceControl.Sources.Subversion
 {
-    class RenameCommand : BaseCommand
+    internal class RenameCommand : BaseCommand
     {
+        readonly string args;
+        readonly string path;
+
         public RenameCommand(string path, string newName)
         {
-            string args = String.Format("rename \"{0}\" \"{1}\"", Path.GetFileName(path), newName);
-
-            Run(args, Path.GetDirectoryName(path));
+            args = $"rename \"{Path.GetFileName(path)}\" \"{newName}\"";
+            this.path = path;
         }
+
+        public override void Run() => Run(args, Path.GetDirectoryName(path));
     }
 }

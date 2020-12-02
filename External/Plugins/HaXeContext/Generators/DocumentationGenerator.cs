@@ -13,8 +13,8 @@ namespace HaXeContext.Generators
     {
         protected override void GenerateDocumentation(string context)
         {
-            var sci = ASContext.CurSciControl;
-            if (sci == null) return;
+            var sci = PluginBase.MainForm.CurrentDocument?.SciControl;
+            if (sci is null) return;
             var position = sci.CurrentPos;
             var line = sci.LineFromPosition(position);
             var indent = sci.LineIndentPosition(line) - sci.PositionFromLine(line);
@@ -27,10 +27,10 @@ namespace HaXeContext.Generators
             if (enableLeadingAsterisks) bodyStar = headerStar;
             else bodyStar = cbs == CommentBlockStyle.Indented ? "  " : " ";
             var parInd = cbs == CommentBlockStyle.Indented ? "\t" : " ";
-            if (!PluginBase.MainForm.Settings.UseTabs) parInd = " ";
+            if (!PluginBase.Settings.UseTabs) parInd = " ";
 
             // empty box
-            if (context == null)
+            if (context is null)
             {
                 sci.ReplaceSel(newline + tab + headerStar + " " + newline + tab + headerStar + "/");
                 position += newline.Length + tab.Length + 1 + headerStar.Length;
@@ -64,10 +64,10 @@ namespace HaXeContext.Generators
         /// </summary>
         /// <param name="parameters">Method parameters</param>
         /// <returns>Member list</returns>
-        private static IEnumerable<MemberModel> ParseMethodParameters(string parameters)
+        static IEnumerable<MemberModel> ParseMethodParameters(string parameters)
         {
             var list = new List<MemberModel>();
-            if (parameters == null) return list;
+            if (parameters is null) return list;
             var p = parameters.IndexOf('(');
             if (p >= 0) parameters = parameters.Substring(p + 1, parameters.IndexOf(')') - p - 1);
             parameters = parameters.Trim();

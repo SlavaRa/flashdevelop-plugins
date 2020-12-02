@@ -5,15 +5,15 @@ using SourceControl.Actions;
 
 namespace SourceControl.Sources.Git
 {
-    static class TortoiseProc
+    internal static class TortoiseProc
     {
-        static private string resolvedCmd;
-        static private string qualifiedCmd;
+        static string resolvedCmd;
+        static string qualifiedCmd;
 
         public static void Execute(string command, string path)
         {
-            string args = String.Format("/command:{0} /path:\"{1}\"", command, path);
-            ProcessStartInfo info = new ProcessStartInfo(GetTortoiseProc(), args);
+            var args = $"/command:{command} /path:\"{path}\"";
+            var info = new ProcessStartInfo(GetTortoiseProc(), args);
             info.UseShellExecute = true;
 
             var proc = new Process
@@ -27,8 +27,8 @@ namespace SourceControl.Sources.Git
 
         public static void Execute(string command, string path1, string path2)
         {
-            string args = String.Format("/command:{0} /path:\"{1}\" /path2:\"{2}\"", command, path1, path2);
-            ProcessStartInfo info = new ProcessStartInfo(GetTortoiseProc(), args);
+            var args = $"/command:{command} /path:\"{path1}\" /path2:\"{path2}\"";
+            var info = new ProcessStartInfo(GetTortoiseProc(), args);
             info.UseShellExecute = true;
 
             var proc = new Process
@@ -42,7 +42,7 @@ namespace SourceControl.Sources.Git
 
         public static void ExecuteCustom(string command, string arguments)
         {
-            string args = "/command:" + command + " " + arguments;
+            var args = "/command:" + command + " " + arguments;
             var info = new ProcessStartInfo(GetTortoiseProc(), args) { UseShellExecute = true };
 
             var proc = new Process
@@ -54,27 +54,27 @@ namespace SourceControl.Sources.Git
             proc.Start();
         }
 
-        static private string GetTortoiseProc()
+        static string GetTortoiseProc()
         {
-            string cmd = PluginMain.SCSettings.TortoiseGITProcPath;
-            if (cmd != null && File.Exists(cmd)) return cmd;
-            if (String.IsNullOrEmpty(cmd)) cmd = "TortoiseGitProc.exe";
+            var cmd = PluginMain.SCSettings.TortoiseGITProcPath;
+            if (File.Exists(cmd)) return cmd;
+            if (string.IsNullOrEmpty(cmd)) cmd = "TortoiseGitProc.exe";
             return ResolveTortoiseProcPath(cmd);
         }
 
-        static private string ResolveTortoiseProcPath(string cmd)
+        static string ResolveTortoiseProcPath(string cmd)
         {
             if (resolvedCmd == cmd || Path.IsPathRooted(cmd))
                 return qualifiedCmd;
 
             resolvedCmd = cmd;
             qualifiedCmd = cmd;
-            string cp = Environment.GetEnvironmentVariable("PATH");
-            foreach (string path in cp.Split(';'))
+            var cp = Environment.GetEnvironmentVariable("PATH");
+            foreach (var path in cp.Split(';'))
             {
                 if (path.IndexOf("git", StringComparison.OrdinalIgnoreCase) > 0 && Directory.Exists(path))
                 {
-                    string test = Path.Combine(path, cmd);
+                    var test = Path.Combine(path, cmd);
                     if (File.Exists(test)) { qualifiedCmd = test; break; }
                 }
             }

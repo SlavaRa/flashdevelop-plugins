@@ -10,7 +10,7 @@ using SourceControl.Actions;
 
 namespace SourceControl.Sources.Subversion
 {
-    class BaseCommand
+    internal abstract class BaseCommand : VCCommand
     {
         protected ProcessRunner runner;
         protected List<string> errors = new List<string>();
@@ -31,23 +31,23 @@ namespace SourceControl.Sources.Subversion
                 runner = new ProcessRunner();
                 runner.WorkingDirectory = workingDirectory;
                 runner.Run(cmd, args);
-                runner.Output += new LineOutputHandler(Runner_Output);
-                runner.Error += new LineOutputHandler(Runner_Error);
-                runner.ProcessEnded += new ProcessEndedHandler(Runner_ProcessEnded);
+                runner.Output += Runner_Output;
+                runner.Error += Runner_Error;
+                runner.ProcessEnded += Runner_ProcessEnded;
             }
             catch (Exception ex)
             {
                 runner = null;
-                String label = TextHelper.GetString("SourceControl.Info.UnableToStartCommand");
+                var label = TextHelper.GetString("SourceControl.Info.UnableToStartCommand");
                 TraceManager.AddAsync(label + "\n" + ex.Message);
             }
         }
 
         protected virtual string GetSvnCmd()
         {
-            string cmd = PluginMain.SCSettings.SVNPath;
+            var cmd = PluginMain.SCSettings.SVNPath;
             if (cmd == "null") cmd = "svn";
-            string resolve = PathHelper.ResolvePath(cmd);
+            var resolve = PathHelper.ResolvePath(cmd);
             return resolve ?? cmd;
         }
 
@@ -56,6 +56,8 @@ namespace SourceControl.Sources.Subversion
             runner = null;
             DisplayErrors();
 
+            nextCommand?.Run();
+
             ProjectWatcher.ForceRefresh();
         }
 
@@ -63,9 +65,9 @@ namespace SourceControl.Sources.Subversion
         {
             if (errors.Count > 0)
             {
-                (PluginBase.MainForm as Form).BeginInvoke((MethodInvoker)delegate
+                ((Form) PluginBase.MainForm).BeginInvoke((MethodInvoker)delegate
                 {
-                    ErrorManager.ShowInfo(String.Join("\n", errors.ToArray()));
+                    ErrorManager.ShowInfo(string.Join("\n", errors));
                 });
             }
         }

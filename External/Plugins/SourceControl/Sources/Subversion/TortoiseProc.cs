@@ -5,15 +5,15 @@ using SourceControl.Actions;
 
 namespace SourceControl.Sources.Subversion
 {
-    static class TortoiseProc
+    internal static class TortoiseProc
     {
-        static private string resolvedCmd;
-        static private string qualifiedCmd;
+        static string resolvedCmd;
+        static string qualifiedCmd;
 
-        static public void Execute(string command, string path)
+        public static void Execute(string command, string path)
         {
-            string args = String.Format("/command:{0} /path:\"{1}\"", command, path);
-            ProcessStartInfo info = new ProcessStartInfo(GetTortoiseProc(), args);
+            var args = $"/command:{command} /path:\"{path}\"";
+            var info = new ProcessStartInfo(GetTortoiseProc(), args);
             info.UseShellExecute = true;
 
             var proc = new Process
@@ -25,10 +25,10 @@ namespace SourceControl.Sources.Subversion
             proc.Start();
         }
 
-        static public void Execute(string command, string path1, string path2)
+        public static void Execute(string command, string path1, string path2)
         {
-            string args = String.Format("/command:{0} /path:\"{1}\" /path2:\"{2}\"", command, path1, path2);
-            ProcessStartInfo info = new ProcessStartInfo(GetTortoiseProc(), args);
+            var args = $"/command:{command} /path:\"{path1}\" /path2:\"{path2}\"";
+            var info = new ProcessStartInfo(GetTortoiseProc(), args);
             info.UseShellExecute = true;
 
             var proc = new Process
@@ -40,27 +40,27 @@ namespace SourceControl.Sources.Subversion
             proc.Start();
         }
 
-        static private string GetTortoiseProc()
+        static string GetTortoiseProc()
         {
-            string cmd = PluginMain.SCSettings.TortoiseSVNProcPath;
-            if (cmd != null && File.Exists(cmd)) return cmd;
-            if (String.IsNullOrEmpty(cmd)) cmd = "TortoiseProc.exe";
+            var cmd = PluginMain.SCSettings.TortoiseSVNProcPath;
+            if (File.Exists(cmd)) return cmd;
+            if (string.IsNullOrEmpty(cmd)) cmd = "TortoiseProc.exe";
             return ResolveTortoiseProcPath(cmd);
         }
 
-        static private string ResolveTortoiseProcPath(string cmd)
+        static string ResolveTortoiseProcPath(string cmd)
         {
             if (resolvedCmd == cmd || Path.IsPathRooted(cmd))
                 return qualifiedCmd;
 
             resolvedCmd = cmd;
             qualifiedCmd = cmd;
-            string cp = Environment.GetEnvironmentVariable("PATH");
-            foreach (string path in cp.Split(';'))
+            var cp = Environment.GetEnvironmentVariable("PATH");
+            foreach (var path in cp.Split(';'))
             {
                 if (path.IndexOf("svn", StringComparison.OrdinalIgnoreCase) > 0 && Directory.Exists(path))
                 {
-                    string test = Path.Combine(path, cmd);
+                    var test = Path.Combine(path, cmd);
                     if (File.Exists(test)) { qualifiedCmd = test; break; }
                 }
             }

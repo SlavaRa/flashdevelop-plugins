@@ -4,18 +4,18 @@ using System.Text.RegularExpressions;
 
 namespace SourceControl.Sources.Subversion
 {
-    class SubversionManager : IVCManager
+    internal class SubversionManager : IVCManager
     {
         public event VCManagerStatusChange OnChange;
 
-        Dictionary<string, Status> statusCache = new Dictionary<string, Status>();
-        IVCMenuItems menuItems = new MenuItems();
-        IVCFileActions fileActions = new FileActions();
-        Regex reIgnore = new Regex("[/\\\\][._]svn[/\\\\]");
+        readonly Dictionary<string, Status> statusCache = new Dictionary<string, Status>();
+        readonly IVCMenuItems menuItems = new MenuItems();
+        readonly IVCFileActions fileActions = new FileActions();
+        readonly Regex reIgnore = new Regex("[/\\\\][._]svn[/\\\\]");
         bool ignoreDirty = false;
 
-        public IVCMenuItems MenuItems { get { return menuItems; } }
-        public IVCFileActions FileActions { get { return fileActions; } }
+        public IVCMenuItems MenuItems => menuItems;
+        public IVCFileActions FileActions => fileActions;
 
         public SubversionManager()
         {
@@ -24,49 +24,45 @@ namespace SourceControl.Sources.Subversion
         public bool IsPathUnderVC(string path)
         {
             if (Directory.Exists(Path.Combine(path, ".svn"))) return true;
-            else if (Directory.Exists(Path.Combine(path, "_svn"))) return true;
-            else return false;
+            if (Directory.Exists(Path.Combine(path, "_svn"))) return true;
+            return false;
         }
 
         public VCItemStatus GetOverlay(string path, string rootPath)
         {
-            StatusNode snode = FindNode(path, rootPath);
+            var snode = FindNode(path, rootPath);
             if (snode != null) return snode.Status;
-            else return VCItemStatus.Unknown;
+            return VCItemStatus.Unknown;
         }
 
-        private StatusNode FindNode(string path, string rootPath)
+        StatusNode? FindNode(string path, string rootPath)
         {
-            if (statusCache.ContainsKey(rootPath))
-            {
-                Status status = statusCache[rootPath];
-                int len = path.Length;
-                int rlen = rootPath.Length + 1;
-                if (len < rlen) path = ".";
-                else path = path.Substring(rlen);
-
-                return status.Get(path);
-            }
-            return null;
+            if (!statusCache.ContainsKey(rootPath)) return null;
+            var status = statusCache[rootPath];
+            var len = path.Length;
+            var rlen = rootPath.Length + 1;
+            if (len < rlen) path = ".";
+            else path = path.Substring(rlen);
+            return status.Get(path);
         }
 
-        public List<VCStatusReport> GetAllOverlays(string path, string rootPath)
+        public List<VCStatusReport>? GetAllOverlays(string path, string rootPath)
         {
-            StatusNode root = FindNode(path, rootPath);
-            if (root == null) return null;
+            var root = FindNode(path, rootPath);
+            if (root is null) return null;
 
-            List<StatusNode> children = new List<StatusNode>();
+            var children = new List<StatusNode>();
             GetChildren(root, children);
-            List<VCStatusReport> result = new List<VCStatusReport>();
-            foreach (StatusNode child in children)
+            var result = new List<VCStatusReport>();
+            foreach (var child in children)
                 result.Add(new VCStatusReport(GetNodePath(child, rootPath), child.Status));
             return result;
         }
 
-        private string GetNodePath(StatusNode child, string rootPath)
+        static string GetNodePath(StatusNode child, string rootPath)
         {
-            char S = Path.DirectorySeparatorChar;
-            string path = "";
+            var S = Path.DirectorySeparatorChar;
+            var path = "";
             while (child != null && child.Name != ".")
             {
                 path = S + child.Name + path;
@@ -75,10 +71,10 @@ namespace SourceControl.Sources.Subversion
             return rootPath + S + path;
         }
 
-        private void GetChildren(StatusNode node, List<StatusNode> result)
+        static void GetChildren(StatusNode node, ICollection<StatusNode> result)
         {
-            if (node.Children == null) return;
-            foreach (StatusNode child in node.Children.Values)
+            if (node.Children is null) return;
+            foreach (var child in node.Children.Values)
             {
                 result.Add(child);
                 GetChildren(child, result);
@@ -91,7 +87,7 @@ namespace SourceControl.Sources.Subversion
             if (!statusCache.ContainsKey(rootPath))
             {
                 status = new Status(rootPath);
-                status.OnResult += new StatusResult(Status_OnResult);
+                status.OnResult += Status_OnResult;
                 statusCache[rootPath] = status;
             }
             else status = statusCache[rootPath];
@@ -102,7 +98,7 @@ namespace SourceControl.Sources.Subversion
         void Status_OnResult(Status status)
         {
             ignoreDirty = false;
-            if (OnChange != null) OnChange(this);
+            OnChange?.Invoke(this);
         }
 
         public bool SetPathDirty(string path, string rootPath)
@@ -116,9 +112,8 @@ namespace SourceControl.Sources.Subversion
             return false;
         }
 
-        public void Commit(string[] files, string message)
-        {
-            new Git.CommitCommand(files, message, Path.GetDirectoryName(files[0]));
-        }
+        public VCCommand Commit(string[] files, string message) => new CommitCommand(files, message, Path.GetDirectoryName(files[0]));
+
+        public VCCommand Unstage(string file) => null; //Not sure what to do here, ignore for now
     }
 }

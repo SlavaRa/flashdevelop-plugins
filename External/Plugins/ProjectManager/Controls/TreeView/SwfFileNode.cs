@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using PluginCore;
@@ -38,7 +39,7 @@ namespace ProjectManager.Controls.TreeView
 
     public class ExportNode : FakeNode
     {
-        static public Regex reSafeChars = new Regex("[*\\:" + Regex.Escape(new String(Path.GetInvalidPathChars())) + "]");
+        public static Regex reSafeChars = new Regex("[*\\:" + Regex.Escape(new string(Path.GetInvalidPathChars())) + "]");
 
         public string Export;
         public string ContainingSwfPath;
@@ -151,14 +152,14 @@ namespace ProjectManager.Controls.TreeView
     public class SwfFileNode : FileNode
     {
         bool explored;
-        bool explorable;
+        readonly bool explorable;
         BackgroundWorker runner;
         ContentParser parser;
 
         public SwfFileNode(string filePath) : base(filePath)
         {
             string ext = Path.GetExtension(filePath).ToLower();
-            explorable = FileInspector.IsSwf(filePath, ext) || ext == ".swc" || ext == ".ane";
+            explorable = FileInspector.IsSwf(ext) || ext == ".swc" || ext == ".ane";
             if (explorable)
             {
                 isRefreshable = true;
@@ -166,7 +167,7 @@ namespace ProjectManager.Controls.TreeView
             }
         }
 
-        public bool FileExists { get { return File.Exists(BackingPath); } }
+        public bool FileExists => File.Exists(BackingPath);
 
         public override void Refresh(bool recursive)
         {
@@ -183,7 +184,8 @@ namespace ProjectManager.Controls.TreeView
                 Nodes.Clear(); // non-existent file can't be explored
                 return;
             }
-            else if (Nodes.Count == 0)
+
+            if (Nodes.Count == 0)
             {
                 Nodes.Add(new WorkingNode(BackingPath));
             }
@@ -218,8 +220,8 @@ namespace ProjectManager.Controls.TreeView
             parser = new ContentParser(BackingPath);
 
             runner = new BackgroundWorker();
-            runner.RunWorkerCompleted += new RunWorkerCompletedEventHandler(runner_ProcessEnded);
-            runner.DoWork += new DoWorkEventHandler(runner_DoWork);
+            runner.RunWorkerCompleted += runner_ProcessEnded;
+            runner.DoWork += runner_DoWork;
             runner.RunWorkerAsync(parser);
         }
 
@@ -240,12 +242,12 @@ namespace ProjectManager.Controls.TreeView
             TreeView.BeginUpdate();
             try
             {
-                if (parser == null)
+                if (parser is null)
                     return;
                 if (parser.Errors.Count > 0)
                 {
                     WorkingNode wnode = Nodes[0] as WorkingNode;
-                    if (wnode == null)
+                    if (wnode is null)
                     {
                         Nodes.Clear();
                         wnode = new WorkingNode(BackingPath);
@@ -287,8 +289,7 @@ namespace ProjectManager.Controls.TreeView
                 {
                     ClassesNode node = new ClassesNode(BackingPath);
                     node.Text += " (" + FormatBytes(parser.AbcSize) + ")";
-                    int[] groups = new int[classesComp.groups.Keys.Count];
-                    classesComp.groups.Keys.CopyTo(groups, 0);
+                    int[] groups = classesComp.groups.Keys.ToArray();
                     Array.Sort(groups);
                     foreach (int index in groups)
                     {
@@ -298,7 +299,7 @@ namespace ProjectManager.Controls.TreeView
                         frame.Text = groupName + " (" + FormatBytes(group.AbcSize) + ")";
                         if (parser.Frames.Count > 1) node.Nodes.Add(frame);
 
-                        List<String> names = classesComp.groups[index];
+                        List<string> names = classesComp.groups[index];
                         names.Sort(); // TODO Add setting?
                         foreach (string cls in names)
                         {
@@ -321,8 +322,7 @@ namespace ProjectManager.Controls.TreeView
                     SymbolsNode node2 = new SymbolsNode(BackingPath);
                     node2.Text += " (" + FormatBytes(parser.TotalSize - parser.AbcSize - parser.FontsSize) + ")";
 
-                    int[] groups = new int[symbolsComp.groups.Keys.Count];
-                    symbolsComp.groups.Keys.CopyTo(groups, 0);
+                    int[] groups = symbolsComp.groups.Keys.ToArray();
                     Array.Sort(groups);
                     foreach(int index in groups)
                     {
@@ -332,7 +332,7 @@ namespace ProjectManager.Controls.TreeView
                         frame.Text = groupName + " (" + FormatBytes(group.DataSize) + ")";
                         if (parser.Frames.Count > 1) node2.Nodes.Add(frame);
 
-                        List<String> names = symbolsComp.groups[index];
+                        List<string> names = symbolsComp.groups[index];
                         names.Sort(); // TODO Add setting?
                         foreach (string symbol in names)
                             node2.Nodes.Add(new ExportNode(BackingPath, symbol));
@@ -344,8 +344,7 @@ namespace ProjectManager.Controls.TreeView
                 {
                     FontsNode node2 = new FontsNode(BackingPath);
                     node2.Text += " (" + FormatBytes(parser.FontsSize) + ")";
-                    int[] groups = new int[fontsComp.groups.Keys.Count];
-                    fontsComp.groups.Keys.CopyTo(groups, 0);
+                    int[] groups = fontsComp.groups.Keys.ToArray();
                     Array.Sort(groups);
                     foreach (int index in groups)
                     {
@@ -355,7 +354,7 @@ namespace ProjectManager.Controls.TreeView
                         frame.Text = groupName + " (" + FormatBytes(group.FontSize) + ")";
                         if (parser.Frames.Count > 1) node2.Nodes.Add(frame);
 
-                        List<String> names = fontsComp.groups[index];
+                        List<string> names = fontsComp.groups[index];
                         names.Sort(); // TODO Add setting?
                         foreach (string font in names)
                             node2.Nodes.Add(new FontExportNode(BackingPath, font));
@@ -379,28 +378,28 @@ namespace ProjectManager.Controls.TreeView
         private Rectangle GetSwfRect(byte[] bytes)
         {
             BitArray ba = BitParser.GetBitValues(bytes);
-            int Nbits = (int)BitParser.ReadUInt32(ba, 5);
+            int Nbits = BitParser.ReadUInt32(ba, 5);
             int index = 5;
-            int xmin = (int)BitParser.ReadUInt32(ba, index, Nbits) / 20;
+            int xmin = BitParser.ReadUInt32(ba, index, Nbits) / 20;
             index += Nbits;
-            int xmax = (int)BitParser.ReadUInt32(ba, index, Nbits) / 20;
+            int xmax = BitParser.ReadUInt32(ba, index, Nbits) / 20;
             index += Nbits;
-            int ymin = (int)BitParser.ReadUInt32(ba, index, Nbits) / 20;
+            int ymin = BitParser.ReadUInt32(ba, index, Nbits) / 20;
             index += Nbits;
-            int ymax = (int)BitParser.ReadUInt32(ba, index, Nbits) / 20;
+            int ymax = BitParser.ReadUInt32(ba, index, Nbits) / 20;
             return new Rectangle(xmin, ymin, xmax, ymax);
         }
 
         public string FormatBytes(long bytes)
         {
             const int scale = 1024;
-            string[] orders = new string[] { "Gb", "Mb", "Kb", "b" };
+            string[] orders = { "Gb", "Mb", "Kb", "b" };
             long max = (long)Math.Pow(scale, orders.Length - 1);
 
             foreach (string order in orders)
             {
                 if (bytes > max)
-                    return string.Format("{0:##.##} {1}", decimal.Divide(bytes, max), order);
+                    return $"{decimal.Divide(bytes, max):##.##} {order}";
 
                 max /= scale;
             }
@@ -409,7 +408,7 @@ namespace ProjectManager.Controls.TreeView
 
         class ExportComparer : IComparer<DeclEntry>
         {
-            public Dictionary<int, List<string>> groups = new Dictionary<int, List<string>>();
+            public readonly Dictionary<int, List<string>> groups = new Dictionary<int, List<string>>();
             private List<DeclEntry> frames;
 
             public ExportComparer(List<DeclEntry> swfFrames)

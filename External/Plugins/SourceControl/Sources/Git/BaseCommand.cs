@@ -11,11 +11,11 @@ using SourceControl.Actions;
 
 namespace SourceControl.Sources.Git
 {
-    internal class BaseCommand
+    internal abstract class BaseCommand : VCCommand
     {
-        private static string resolvedCmd;
-        private static string qualifiedCmd;
-
+        static string resolvedCmd;
+        static string qualifiedCmd;
+        
         protected ProcessRunner runner;
         protected List<string> errors = new List<string>();
 
@@ -25,43 +25,42 @@ namespace SourceControl.Sources.Git
             {
                 if (!args.StartsWithOrdinal("status")) TraceManager.AddAsync("git " + args);
 
-                string cmd = GetGitCmd();
+                var cmd = GetGitCmd();
                 runner = new ProcessRunner();
                 runner.WorkingDirectory = workingDirectory;
                 runner.Run(cmd, args, !File.Exists(cmd));
-                runner.Output += new LineOutputHandler(Runner_Output);
-                runner.Error += new LineOutputHandler(Runner_Error);
-                runner.ProcessEnded += new ProcessEndedHandler(Runner_ProcessEnded);
+                runner.Output += Runner_Output;
+                runner.Error += Runner_Error;
+                runner.ProcessEnded += Runner_ProcessEnded;
             }
             catch (Exception ex)
             {
                 runner = null;
-                String label = TextHelper.GetString("SourceControl.Info.UnableToStartCommand");
+                var label = TextHelper.GetString("SourceControl.Info.UnableToStartCommand");
                 TraceManager.AddAsync(label + "\n" + ex.Message);
             }
         }
 
         protected virtual string GetGitCmd()
         {
-            string cmd = PluginMain.SCSettings.GITPath;
-            if (cmd == null) cmd = "git";
-            string resolve = PathHelper.ResolvePath(cmd);
+            var cmd = PluginMain.SCSettings.GITPath ?? "git";
+            var resolve = PathHelper.ResolvePath(cmd);
             return resolve ?? ResolveGitPath(cmd);
         }
 
-        private static string ResolveGitPath(string cmd)
+        static string ResolveGitPath(string cmd)
         {
             if (resolvedCmd == cmd || Path.IsPathRooted(cmd))
                 return qualifiedCmd;
             
             resolvedCmd = cmd;
             qualifiedCmd = cmd;
-            string cp = Environment.GetEnvironmentVariable("PATH");
-            foreach (string path in cp.Split(';'))
+            var cp = Environment.GetEnvironmentVariable("PATH");
+            foreach (var path in cp.Split(';'))
             {
                 if (path.IndexOf("git", StringComparison.OrdinalIgnoreCase) > 0 && Directory.Exists(path))
                 {
-                    string test = Path.Combine(path, cmd + ".cmd");
+                    var test = Path.Combine(path, cmd + ".cmd");
                     if (File.Exists(test)) { qualifiedCmd = test; break; }
                     test = Path.Combine(path, cmd + ".exe");
                     if (File.Exists(test)) { qualifiedCmd = test; break; }
@@ -75,6 +74,8 @@ namespace SourceControl.Sources.Git
             runner = null;
             DisplayErrors();
 
+            nextCommand?.Run();
+
             ProjectWatcher.ForceRefresh();
         }
 
@@ -82,10 +83,8 @@ namespace SourceControl.Sources.Git
         {
             if (errors.Count > 0)
             {
-                (PluginBase.MainForm as Form).BeginInvoke((MethodInvoker)delegate
-                {
-                    ErrorManager.ShowInfo(String.Join("\n", errors.ToArray()));
-                });
+                ((Form) PluginBase.MainForm).BeginInvoke((MethodInvoker)(() =>
+                    ErrorManager.ShowInfo(string.Join("\n", errors))));
             }
         }
 

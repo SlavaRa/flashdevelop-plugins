@@ -205,10 +205,7 @@ namespace PluginCore.Controls
         /// <summary>
         /// Gets the modified array of items.
         /// </summary>
-        public T[] Value
-        {
-            get { return value; }
-        }
+        public T[] Value => value;
 
         #endregion
 
@@ -216,7 +213,7 @@ namespace PluginCore.Controls
 
         void InitializeGraphics()
         {
-            Font = PluginBase.MainForm.Settings.DefaultFont;
+            Font = PluginBase.Settings.DefaultFont;
             btnAdd.Image = PluginBase.MainForm.FindImage16("67", false);
             btnRemove.Image = PluginBase.MainForm.FindImage16("63", false);
             btnUp.Image = PluginBase.MainForm.FindImage16("74", false);
@@ -302,9 +299,8 @@ namespace PluginCore.Controls
             var items = new Item[selectedItems.Count];
             selectedItems.CopyTo(items, 0);
 
-            for (int i = 0; i < items.Length; i++)
+            foreach (var item in items)
             {
-                var item = items[i];
                 availableItems.Items.Remove(item);
                 usedItems.Items.Add(item);
             }
@@ -325,9 +321,8 @@ namespace PluginCore.Controls
             var items = new Item[selectedItems.Count];
             selectedItems.CopyTo(items, 0);
 
-            for (int i = 0; i < items.Length; i++)
+            foreach (var item in items)
             {
-                var item = items[i];
                 if (item.Locked) continue;
                 usedItems.Items.Remove(item);
                 availableItems.Items.Add(item);
@@ -403,18 +398,12 @@ namespace PluginCore.Controls
 
         class Item : ListViewItem
         {
-            bool locked;
-            T value;
+            readonly bool locked;
+            readonly T value;
 
-            public bool Locked
-            {
-                get { return locked; }
-            }
+            public bool Locked => locked;
 
-            public T Value
-            {
-                get { return value; }
-            }
+            public T Value => value;
 
             public Item(T value) : this(value, false)
             {

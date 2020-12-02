@@ -1,13 +1,16 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace SourceControl.Sources.Mercurial
 {
-    class AddCommand : BaseCommand
+    internal class AddCommand : BaseCommand
     {
-        public AddCommand(string path)
+        readonly string path;
+
+        public AddCommand(string path) => this.path = path;
+
+        public override void Run()
         {
-            string args = String.Format("add \"{0}\"", Path.GetFileName(path));
+            var args = $"add \"{Path.GetFileName(path)}\"";
             Run(args, Path.GetDirectoryName(path));
         }
     }
